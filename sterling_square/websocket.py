@@ -1,19 +1,19 @@
-# websocket.py
+# socket_test.py
 async def websocket_application(scope, receive, send):
     while True:
         event = await receive()
 
-        if event['type'] == 'websocket.connect':
+        if event['type'] == 'socket_test.connect':
             await send({
-                'type': 'websocket.accept'
+                'type': 'socket_test.accept'
             })
 
-        if event['type'] == 'websocket.disconnect':
+        if event['type'] == 'socket_test.disconnect':
             break
 
-        if event['type'] == 'websocket.receive':
+        if event['type'] == 'socket_test.receive':
             if event['text'] == 'ping':
                 await send({
-                    'type': 'websocket.send',
+                    'type': 'socket_test.send',
                     'text': 'pong!'
                 })

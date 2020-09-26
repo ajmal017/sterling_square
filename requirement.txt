@@ -53,3 +53,4 @@ yahoo-finance==1.4.0
 #yahoo-finance-api==0.0.1
 yfinance==0.1.54
 zipp==3.1.0
+channels-redis==2.4.2

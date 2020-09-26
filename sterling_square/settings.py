@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'main',
-    'websocket',
+    'socket_test',
     'channels',
 ]
 

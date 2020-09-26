@@ -22,7 +22,7 @@ async def application(scope, receive, send):
     if scope['type'] == 'http':
         # Let Django handle HTTP requests
         await django_application(scope, receive, send)
-    elif scope['type'] == 'websocket':
+    elif scope['type'] == 'socket_test':
         await websocket_application(scope, receive, send)
     else:
         raise NotImplementedError(f"Unknown scope type {scope['type']}")
