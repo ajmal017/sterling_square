@@ -1,0 +1,1 @@
+celery -A sterling_square  worker -B -l info

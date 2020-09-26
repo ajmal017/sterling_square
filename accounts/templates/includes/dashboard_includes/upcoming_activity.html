@@ -1,0 +1,68 @@
+{% load dashboard_tags %}
+<div class="ua-content" style="display: none;">
+    <hr style="background-color: #fff">
+    <div class="row">
+        <div class="col-sm-10">
+            <label class="graph-title">Upcoming Activity</label>
+        </div>
+        <!--<div class="col-sm-2" style="text-align: right">-->
+        <!--<label class="label-text show-more-content"></label>-->
+        <!--</div>-->
+
+
+    </div>
+    <hr style="background-color: #fff">
+
+<table class="table" >
+    <tr>
+        <th>Order</th>
+        <th>Type</th>
+        <th>Time in Force</th>
+        <th>Limit Price</th>
+        <th>Entered Quantity</th>
+        <th>Status</th>
+        <th></th>
+    </tr>
+        {% for stock in transaction_list %}
+            <input type="hidden" value="{{stock.stockticker.symbol}}" class="is_transaction">
+            <tr>
+                <td>{{ stock.stockticker.symbol }}</td>
+                {% get_type_text stock.ordertype as ordertype %}
+                <td>{{ ordertype }}</td>
+                <td>{{ stock.expires }}</td>
+                <td>{{ stock.limit_price|default_if_none:'' }}</td>
+                <td>{{ stock.size }}</td>
+                <td>{{ stock.status }}</td>
+                <td><p data-attr="{{ stock.id }}" class="cancel-transact" style="color:rgb(255, 80, 0);text-decoration: none!important;">Cancel</p></td>
+
+            </tr>
+        {% endfor %}
+    </table>
+<div class="pagination" style="display: block">
+        {% if transaction_list.has_previous %}
+     <span style="float: left" class="btn btn-paginate" data-attr="1"><< </span>
+    <span style="float: left" class="btn btn-paginate" data-attr="{{ transaction_list.previous_page_number }}"><</span>
+
+        {% endif %}
+
+        <span class="current" style="color: #fff;text-align: center;display: none">
+            Page {{ transaction_list.number }} of {{ transaction_list.paginator.num_pages }}.
+        </span>
+
+        {% if transaction_list.has_next %}
+            <span style="float: right" class="btn btn-paginate" data-attr="{{ transaction_list.paginator.num_pages }}">>></span>
+            <span style="float: right" class="btn btn-paginate" data-attr="{{ transaction_list.next_page_number }}">></span>
+
+        {% endif %}
+</div>
+</div>
+<script>
+$(document).ready(function () {
+  $('#dtBasicExample').DataTable();
+  $('.dataTables_length').addClass('bs-select');
+  if($(".ua-content").find(".is_transaction").length){
+    $(".ua-content").show()
+  }
+});
+
+</script>

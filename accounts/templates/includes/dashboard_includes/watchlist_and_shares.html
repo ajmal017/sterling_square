@@ -1,0 +1,73 @@
+<div class="market-pairs">
+    <div class="row">
+        <div class="col-sm-9 dash-right-col-title-div">
+            <p class="dash-right-col-title1">Stocks</span></p>
+        </div>
+        <div class="col-sm-3 dash-right-col-title-arrow-div">
+            <i class="fa fa-chevron-down dash-right-col-title-arrow"></i>
+            <div class="dropdown-menu dash-right-col-dropdown">
+                <div class="dropdown-header d-flex flex-column align-items-center">
+                    <p>Display</p>
+                </div>
+                <div class="dropdown-body">
+                    <ul class="profile-nav">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+
+                                <span>Last Price</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+
+                                <span>Your Equity</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+
+                                <span>Today's Return</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link red">
+
+                                <span>Total Return</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <hr style="background: gray">
+    <div class="row">
+        <div class="col-sm-9 dash-right-col-title-div">
+            <p class="dash-right-col-title1">Watchlist</span></p>
+        </div>
+        <!--            <div class="col-sm-8" style="padding: 10px 0px 0px 30px;">-->
+        <!--              <label style="color: #ffffff">Shares</label>-->
+        <!--            </div>-->
+        <!--            <div class="col-sm-4" style="padding: 0px 30px 0px 0px;">-->
+        <!--              <input type="text" class="form-control share-num">-->
+        <!--            </div>-->
+    </div>
+    <br>
+
+    {% for stock in top_searched %}
+    <div class="row" style="color:#fff!important;padding-left: 10px">
+        <div class="col-sm-6" style="">
+            <label class="w_s_s">{{stock.stock.symbol}}</label>
+        </div>
+
+        <div class="col-sm-6" style="">
+            <label><label class="label-rupee" style="font-size: 15px;">&#8377;</label><span class="w_s_s_{{stock.stock.symbol}}" style="background: none">------</span></label>
+            <label class="w_s_s_label{{stock.stock.symbol}}" style="display: none">(<span class="w_s_s_d{{stock.stock.symbol}}" style="background: none">--</span>)</label>
+        </div>
+    </div>
+    {% endfor %}
+    <ul class="nav nav-pills" role="tablist">
+
+    </ul>
+</div>

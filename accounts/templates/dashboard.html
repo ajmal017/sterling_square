@@ -1,0 +1,78 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% block content %}
+<div class="container-fluid mtb15 no-fluid">
+    <div class="row sm-gutters">
+            <div class="col-sm-1"> </div>
+      <div class="col-md-8">
+        <div class="main-chart mb15">
+          <!-- TradingView Widget BEGIN -->
+          <div class="tradingview-widget-container">
+            <div id="tradingview_e8053" class="">
+              <input type="hidden" class="has_position" value="{{has_position}}">
+              <input type="hidden" class="theme-color" value="">
+              {% include 'includes/dashboard_includes/line-chart-main.html' %}
+            </div>
+          </div>
+          <!-- TradingView Widget END -->
+        </div>
+            {% include 'includes/dashboard_includes/position-table-details.html' %}
+            {% include 'includes/dashboard_includes/upcoming_activity.html' %}
+        <br>
+        <hr style="background-color: #fff">
+        <div class="row">
+          <div class="col-sm-10">
+            <label class="graph-title">About</label>
+          </div>
+          <!--<div class="col-sm-2" style="text-align: right">-->
+            <!--<label class="label-text show-more-content"></label>-->
+          <!--</div>-->
+
+
+        </div>
+        <hr style="background-color: #fff">
+
+
+            {% include 'includes/dashboard_includes/company_info.html' %}
+        <br>
+
+        <br>
+        <br>
+        <br>
+        <br>
+
+        {% include 'includes/dashboard_includes/scatter-plot-chart-main.html' %}
+        <br>
+        <br>
+        <br>
+        <div class="top-g-con" style="">
+          <h4 style="color: #fff;margin-bottom: 24px;">Top Gainers</h4>
+          <hr style="background-color: #fff">
+          {% for top_stock in top_gainers %}
+          <div class="col-md-3 col-sm-2 top-stocks">
+          <div class="markets-capital-item">
+            <h6>
+              <span>{{top_stock.symbol}}</span>
+            </h6>
+            <div class="markets-capital-details">
+              <h6 class="s-ltp">₹{{top_stock.ltp}}</h6>
+              <h5 class="green">{{top_stock.netPrice}}% <i class="icon ion-md-arrow-up"></i></h5>
+            </div>
+
+          </div>
+        </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-md-3">
+<!--        {% include 'includes/dashboard_includes/stock_market_settings.html' %}-->
+        {% include 'includes/dashboard_includes/watchlist_and_shares.html' %}
+      </div>
+
+
+    </div>
+
+  </div>
+
+
+{% endblock %}
