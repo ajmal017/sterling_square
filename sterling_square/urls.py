@@ -22,7 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('', include('main.urls')),
-    path('webrtc/', include('socket_test.urls')),
+    path('chat/', include('socket_test.urls')),
 ]
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf.urls.static import static
