@@ -13,7 +13,7 @@
     fill:#efefef;
 }
 </style>
-    <!-- <link rel="stylesheet" href="style.css" > -->
+<!-- <link rel="stylesheet" href="style.css" > -->
 <!-- socket io js file end -->
 
 <div class="container-fluid mtb15 no-fluid">
@@ -311,6 +311,7 @@
     </script>
     <script type="text/javascript">
       var price_data = [];
+      D3_CHART.init();
 
       var socket = io.connect('http://13.233.127.208:3000/');
 
@@ -332,8 +333,8 @@
         });
       }
 
-      function subscribeInstrument(){
-        var instrument = document.getElementById("inputBox").value;
+      function subscribeInstrument(instrument_token){
+        var instrument = instrument_token;
         console.log('sending instrument : ', instrument);
         socket.emit('subscribe-instrument', { 
           message: instrument,
@@ -355,6 +356,8 @@
         D3_CHART.draw();
 
       });
+
+      subscribeInstrument(738561);
 
     </script>
 {% endblock %}
