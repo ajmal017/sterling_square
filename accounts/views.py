@@ -126,7 +126,7 @@ class SignupView(TemplateView):
 
 
 class DashboardView(TemplateView):
-    template_name = 'dashboard.html'
+    template_name = 'dashboardv1.html' #'dashboard.html'
 
     def get(self, request, *args, **kwargs):
         context = {}

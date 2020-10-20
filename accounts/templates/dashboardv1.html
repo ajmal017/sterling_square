@@ -1,0 +1,360 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+{% block content %}
+<!-- socket io js file for client side socket connection -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.1/socket.io.js" integrity="sha512-AcZyhRP/tbAEsXCCGlziPun5iFvcSUpEz2jKkx0blkYKbxU81F+iq8FURwPn1sYFeksJ+sDDrI5XujsqSobWdQ==" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.2/d3.min.js"></script>
+<style>
+    path.domain  {
+    stroke: #efefef;
+}
+   .tick text {
+    fill:#efefef;
+}
+</style>
+    <!-- <link rel="stylesheet" href="style.css" > -->
+<!-- socket io js file end -->
+
+<div class="container-fluid mtb15 no-fluid">
+    <div class="row sm-gutters">
+            <div class="col-sm-1"> </div>
+      <div class="col-md-8">
+        <div class="main-chart mb15">
+          <!-- TradingView Widget BEGIN -->
+          <div class="tradingview-widget-container">
+            <div id="tradingview_e8053" class="">
+              <input type="hidden" class="has_position" value="{{has_position}}">
+              <input type="hidden" class="theme-color" value="">
+              {% include 'includes/dashboard_includes/line-chart-main.html' %}
+            </div>
+          </div>
+          <!-- TradingView Widget END -->
+        </div>
+            {% include 'includes/dashboard_includes/position-table-details.html' %}
+            {% include 'includes/dashboard_includes/upcoming_activity.html' %}
+        <br>
+        <hr style="background-color: #fff">
+        <!-- New Live Chart start -->
+          <div id="liveChart"></div>
+        <!-- New Live Chart end -->
+        <hr style="background-color: #fff">
+        <div class="row">
+          <div class="col-sm-10">
+            <label class="graph-title">About</label>
+          </div>
+          <!--<div class="col-sm-2" style="text-align: right">-->
+            <!--<label class="label-text show-more-content"></label>-->
+          <!--</div>-->
+
+
+        </div>
+        <hr style="background-color: #fff">
+
+
+            {% include 'includes/dashboard_includes/company_info.html' %}
+        <br>
+
+        <br>
+        <br>
+        <br>
+        <br>
+
+        {% include 'includes/dashboard_includes/scatter-plot-chart-main.html' %}
+        <br>
+        <br>
+        <br>
+        <div class="top-g-con" style="">
+          <h4 style="color: #fff;margin-bottom: 24px;">Top Gainers</h4>
+          <hr style="background-color: #fff">
+          {% for top_stock in top_gainers %}
+          <div class="col-md-3 col-sm-2 top-stocks">
+          <div class="markets-capital-item">
+            <h6>
+              <span>{{top_stock.symbol}}</span>
+            </h6>
+            <div class="markets-capital-details">
+              <h6 class="s-ltp">₹{{top_stock.ltp}}</h6>
+              <h5 class="green">{{top_stock.netPrice}}% <i class="icon ion-md-arrow-up"></i></h5>
+            </div>
+
+          </div>
+        </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-md-3">
+<!--        {% include 'includes/dashboard_includes/stock_market_settings.html' %}-->
+        {% include 'includes/dashboard_includes/watchlist_and_shares.html' %}
+      </div>
+
+
+    </div>
+
+  </div>
+  <script type="text/javascript">
+      var D3_CHART = {
+          selector: '#liveChart',
+
+          dataSource:[],
+          data:[],
+          svg: null,
+          mainGroup: null,
+          scaleX: null,
+
+          options:{
+              width: 640,
+              height: 480,
+              margins: {
+                  top: 20,
+                  right: 40,
+                  bottom: 20,
+                  left: 40,
+              },
+              MAX_LENGTH:100,
+              duration:500,
+              color: d3.schemeCategory10 //"#0eb806"//
+          },
+
+          init: function(){
+              var el = d3.select(this.selector);
+              if(el.empty()){
+                  console.warn('init(): Element for "'+this.selector+'" selector not found');
+                  return;
+              }
+
+              //console.log('d3 version: ', d3.version);
+
+              //this.seedData();
+
+              this.draw();
+
+              //window.setInterval(this.updateData, D3_CHART.options.duration);
+          },
+
+          updateData: function(){
+              var now = new Date();
+              var lineData = {
+                  time: now,
+                  last_price: D3_CHART.randomNumberBounds(0, 5)
+              };
+              D3_CHART.dataSource.push(lineData);
+              if (D3_CHART.dataSource.length > 30) {
+                  D3_CHART.dataSource.shift();
+              }
+              D3_CHART.draw();
+          },
+
+          draw: function(){
+              var self = this;
+
+              // Based on https://bl.ocks.org/mbostock/3884955
+              self.data = ["last_price"].map(function(c) {
+                  return {
+                      label: c,
+                      values: self.dataSource.map(function(d) {
+                          return {
+                              time: +d.time,
+                              value: d[c]
+                          };
+                      })
+                  };
+              });
+
+              var transition = d3.transition().duration(this.options.duration).ease(d3.easeLinear),
+                  xScale = d3.scaleTime().rangeRound([0, this.options.width-this.options.margins.left-this.options.margins.right]),
+                  yScale = d3.scaleLinear().rangeRound([this.options.height-this.options.margins.top-this.options.margins.bottom, 0]),
+                  zScale = d3.scaleOrdinal(this.options.color);
+
+              var last_priceMin = d3.min(self.data, function(c) { return d3.min(c.values, function(d) { return d.time; })});
+              var last_priceMax = new Date(new Date(d3.max(self.data, function(c) {
+                  return d3.max(c.values, function(d) { return d.time; })
+              })).getTime() - 2*this.options.duration);
+              //})).getTime());
+
+              xScale.domain([last_priceMin, last_priceMax]);
+              yScale.domain([
+                  d3.min(self.data, function(c) { return d3.min(c.values, function(d) { return d.value; })}),
+                  d3.max(self.data, function(c) { return d3.max(c.values, function(d) { return d.value; })})
+              ]);
+              zScale.domain(self.data.map(function(c) { return c.label; }));
+
+              var line = d3.line()
+                  .curve(d3.curveBasis)
+                  .x(function(d) { return xScale(d.time); })
+                  .y(function(d) { return yScale(d.value); });
+
+              var svg = d3.select(this.selector).selectAll("svg").data([this.data]);
+              var gEnter = svg.enter().append("svg")
+                  .attr('xmlns', 'http://www.w3.org/2000/svg')
+                  .attr("width", this.options.width)
+                  .attr("height", this.options.height)
+                  //.attr("stroke", "#0eb806") // axis text color
+                  .append("g")
+                  .attr('transform', 'translate(' + this.options.margins.left + ',' + this.options.margins.top + ')');
+              gEnter.append("g").attr("class", "axis x");
+              gEnter.append("g").attr("class", "axis y");
+
+              gEnter.append("defs").append("clipPath")
+                  .attr("id", "clip")
+                  .append("rect")
+                  .attr("width", this.options.width-this.options.margins.left-this.options.margins.right)
+                  .attr("height", this.options.height-this.options.margins.top-this.options.margins.bottom);
+
+              gEnter.append("g")
+                  .attr("class", "lines")
+                  .attr("clip-path", "url(#clip)")
+                  .selectAll(".data")
+                  .data(this.data)
+                  .enter()
+                  .append("path")
+                  .attr("class", "data")
+                  .attr("stroke", "#0eb806");
+
+              var legendEnter = gEnter.append("g")
+                  .attr("class", "legend")
+                  .attr("stroke", "#0eb806")
+                  .attr("transform", "translate(" + (this.options.width-this.options.margins.right-this.options.margins.left-75) + ",25)");
+              legendEnter.append("rect")
+                  .attr("width", 150)
+                  .attr("height", 50)
+                  .attr("fill", "none")
+                  .attr("stroke", "none")
+                  .attr("fill-opacity", 0.7);
+              legendEnter.selectAll("text")
+                  .data(this.data)
+                  .enter()
+                  .append("text")
+                  .attr("y", function(d, i) { return (i*20) + 15; })
+                  .attr("x", 5)
+                  .attr("fill", function(d) { return zScale(d.label); });
+
+              var g = svg.select("g");
+
+              g.select("g.axis.x")
+                  .attr("transform", "translate(0," + (this.options.height-this.options.margins.bottom-this.options.margins.top) + ")")
+                  .transition(transition)
+                  .call(d3.axisBottom(xScale).ticks(5));
+
+              g.select("g.axis.y")
+                  .transition(transition)
+                  .attr("class", "axis y")
+                  .call(d3.axisLeft(yScale));
+
+              g.select("defs clipPath rect")
+                  .transition(transition)
+                  .attr("width", this.options.width-this.options.margins.left-this.options.margins.right)
+                  .attr("height", this.options.height-this.options.margins.top-this.options.margins.bottom);
+
+              g.selectAll("g path.data")
+                  .data(this.data)
+                  .style("stroke", "#0eb806")
+                  .style("stroke-width", 2)
+                  .style("fill", "none")
+                  .transition()
+                  .duration(this.options.duration)
+                  .ease(d3.easeLinear)
+                  .on("start", tick);
+
+              g.selectAll("g .legend text")
+                  .data(this.data)
+                  .text(function(d) {
+                      return d.label.toUpperCase().replace('_', " ") + ": " + d.values[d.values.length-1].value;
+                  });
+
+              // For transitions https://bl.ocks.org/mbostock/1642874
+              function tick() {
+                  // Redraw the line.
+                  d3.select(this)
+                      .attr("d", function(d) { return line(d.values); })
+                      .attr("transform", null);
+
+                  // Slide it to the left.
+                  var xMinLess = new Date(new Date(last_priceMin).getTime() - D3_CHART.options.duration);
+                  d3.active(this)
+                      .attr("transform", "translate(" + xScale(xMinLess) + ",0)")
+                      .transition();
+              }
+          },
+
+
+
+          clearChart: function(){
+              var el = d3.select(this.selector);
+              if(el.empty()){
+                  console.warn('clearChart(): Element for "'+this.selector+'" selector not found');
+                  return;
+              }
+
+              // clear element
+              el.html("");
+          },
+
+          seedData: function() {
+              var now = new Date();
+              for (var i = 0; i < this.options.MAX_LENGTH; ++i) {
+                  this.dataSource.push({
+                      time: new Date(now.getTime() - ((this.options.MAX_LENGTH - i) * this.options.duration)),
+                      last_price: this.randomNumberBounds(0, 5)//,
+                      //y: this.randomNumberBounds(0, 2.5),
+                      //z: this.randomNumberBounds(0, 10)
+                  });
+              }
+              console.log(this.dataSource);
+          },
+
+          randomNumberBounds: function (min, max) {
+              return Math.floor(Math.random() * max) + min;
+          }
+      };
+      
+    </script>
+    <script type="text/javascript">
+      var price_data = [];
+
+      var socket = io.connect('http://13.233.127.208:3000/');
+
+
+      socket.on('announcements', function(data) {
+            console.log('Got announcement:', data.message);
+        });
+
+      socket.on('historical-data', function(data) {
+            console.log('Got announcement:', data.message);
+
+        });
+
+      function sendMessage(){
+        var ms = document.getElementById("inputBox").value;
+        console.log('sending message : ', ms);
+        socket.emit('client-message', { 
+          message: ms 
+        });
+      }
+
+      function subscribeInstrument(){
+        var instrument = document.getElementById("inputBox").value;
+        console.log('sending instrument : ', instrument);
+        socket.emit('subscribe-instrument', { 
+          message: instrument,
+        });
+      }
+
+
+      socket.on('instrument-ticks', function(data) {
+        //console.log('Got announcement:', data.message);
+        var tick = data.message;
+        price_data.push({
+          time        : tick.last_order_time,
+          last_price  : tick.last_price 
+        });
+        D3_CHART.dataSource.push(lineData);
+        if (D3_CHART.dataSource.length > 30) {
+            D3_CHART.dataSource.shift();
+        }
+        D3_CHART.draw();
+
+      });
+
+    </script>
+{% endblock %}
