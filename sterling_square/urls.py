@@ -16,8 +16,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from sterling_square import settings
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
@@ -25,5 +23,5 @@ urlpatterns = [
     path('chat/', include('socket_test.urls')),
 ]
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from django.conf.urls.static import static
+
 urlpatterns += staticfiles_urlpatterns()

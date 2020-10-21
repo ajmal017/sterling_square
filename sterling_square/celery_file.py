@@ -1,20 +1,20 @@
 from __future__ import absolute_import, unicode_literals
 
+import datetime
 import json
 import os
 import threading
 from datetime import timedelta
-import datetime
 
 import dateutil
 import requests
-from celery.task import task
 from celery import Celery
+from celery.task import task
+
 # set the default Django settings module for the 'celery' program.
 from sterling_square import settings, tokens
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sterling_square.settings')
-from nsepy import get_history
 
 app = Celery('sterling_square')
 # Using a string here means the worker don't have to serialize
@@ -50,18 +50,16 @@ app.conf.beat_schedule = {
     },
 }
 
+
 @task(name="update_stock_scheduler")
 def stock_scheduler():
-    
     result = requests.get("http://localhost:8000/accounts/update-stock-data/")
-    print("sssssssssss",result)
-    
+    print("sssssssssss", result)
 
 
 def get_new_history(symbol):
     import custom_packages.yfinance as yf
     today = datetime.datetime.now()
-
 
     # define the ticker symbol
     tickerSymbol = symbol + ".NS"
@@ -79,7 +77,7 @@ def get_new_history(symbol):
 
     count = 0
     price_list = []
-    print("GOT TICKER HISTORYYYY            ",tickerSymbol)
+    print("GOT TICKER HISTORYYYY", tickerSymbol)
     for i, j in sbin.iterrows():
         temp_price_list = []
 
@@ -110,13 +108,13 @@ def get_new_history(symbol):
     from yahoo_fin import stock_info as si
     nse = Nse()
     data = {}
-    print("NSEEEEEEEEE            ",tickerSymbol)
+    print("NSEEEEEEEEE            ", tickerSymbol)
     # print("_____________        ",nse.get_quote(symbol))
     try:
         # from func_timeout import func_timeout, FunctionTimedOut
-        print("BEFOREEE GET QUOTE            ",tickerSymbol)
+        print("BEFOREEE GET QUOTE            ", tickerSymbol)
         stock_details = tickerData.info
-        #stock_details = nse.get_quote(symbol)
+        # stock_details = nse.get_quote(symbol)
         # def get_quote_val(symbol):
         #     stock_details = nse.get_quote(symbol)
         #     return stockdata
@@ -128,18 +126,18 @@ def get_new_history(symbol):
         #         stock_details = nse.get_quote(symbol)
         #     except Exception as e:
         #         print("AGAINNnnnNNNNn       TIMEOUT ERRORRRRR         ",e)
-        print("AFTERRRRR GET QUOTE            ",tickerSymbol)
+        print("AFTERRRRR GET QUOTE            ", tickerSymbol)
         try:
-            base_price = stock_details.get("basePrice","")
-            companyName = stock_details.get("longName","")
+            base_price = stock_details.get("basePrice", "")
+            companyName = stock_details.get("longName", "")
             lastPrice = si.get_live_price(symbol + ".NS")
         except Exception as e:
-            print("GET QUOTE TIME OUT ERROR    :  ",e)
+            print("GET QUOTE TIME OUT ERROR    :  ", e)
         # print (price_list)
         # symbol = "hdfc"
         js_resp = get_earnings(symbol)
         estimate_list = get_earnings_by_type(js_resp, 'epsEstimate', "earnings")
-        print("ESTIMATEEEE LISTTTT          ",estimate_list)
+        print("ESTIMATEEEE LISTTTT          ", estimate_list)
         # estimate_list = get_earnings(symbol, 'epsEstimate', "earnings")
         actual_list = get_earnings_by_type(js_resp, 'epsActual', "earnings")
         company_info = get_earnings_by_type(js_resp, "", "company_info")
@@ -230,7 +228,6 @@ def get_stock_details_json(symbol):
         from custom_packages.yahoo_finance import YahooFinance
         latest_price = YahooFinance(symbol + '.NS', result_range='1d', interval='1m', dropna='True').result
 
-
         count = 0
         for i, j in latest_price.iterrows():
             temp_price_list = []
@@ -243,21 +240,22 @@ def get_stock_details_json(symbol):
             # latest_price_list.append(temp_price_list)
             data['stock_price_list'].append(temp_price_list)
             count += 1
-        stock_price = round(si.get_live_price(symbol + ".NS"),2)
+        stock_price = round(si.get_live_price(symbol + ".NS"), 2)
         data['stockprice'] = stock_price
-        print("PRICEEE   --     ",stock_price)
+        print("PRICEEE   --     ", stock_price)
         try:
 
             for pos_obj in Position.objects.filter(ticker=symbol):
                 share_num = int(pos_obj.transaction_details.size)
-                pos_obj.unrealised_gainloss = num_quantize((float(stock_price)-float(pos_obj.transaction_details.price))*share_num)
+                pos_obj.unrealised_gainloss = num_quantize(
+                    (float(stock_price) - float(pos_obj.transaction_details.price)) * share_num)
                 pos_obj.save()
-                print ("GAIN LOSS  --SYMBOL  ",symbol,pos_obj.unrealised_gainloss)
+                print("GAIN LOSS  --SYMBOL  ", symbol, pos_obj.unrealised_gainloss)
         except Exception as e:
-            print ("POSITION ERROR    ",e)
+            print("POSITION ERROR    ", e)
             pass
     except Exception as e:
-        print("ERROR OCCUREDDDDD         ",e)
+        print("ERROR OCCUREDDDDD         ", e)
         data = {}
         response = {}
 
@@ -265,10 +263,8 @@ def get_stock_details_json(symbol):
 
 
 def stock_update():
-
     from accounts.models import StockHistory, StockNames
     from nsetools import Nse
-    from yahoo_fin import stock_info as si
 
     nse = Nse()
     q = nse.get_stock_codes()
@@ -280,7 +276,6 @@ def stock_update():
 
     all_stocks = StockNames.objects.all()
     today = datetime.datetime.now()
-    import threading
 
     for stock in all_stocks:
         try:
@@ -317,21 +312,20 @@ def stock_update():
                     except:
                         StockHistory.objects.create(stock=stock, history_json=history, last_update=today.date())
 
-
-
                     print("data pulled for==", symbol, "....", len(data))
 
-            #process = threading.Thread(target=thread_process)
-            #process.start()
-            #pricess.join()
+            # process = threading.Thread(target=thread_process)
+            # process.start()
+            # pricess.join()
             thread_process()
         except:
-            print("Errorrrr",stock.symbol)
+            print("Errorrrr", stock.symbol)
+
 
 def get_earnings(symbol):
     token = tokens.TOKEN_EOD_HISTORICAL_DATA
     url = "https://eodhistoricaldata.com/api/fundamentals/{}.NSE?api_token={}".format(symbol, token)
-    print("URL   ",url)
+    print("URL   ", url)
     a = requests.get(url)
     try:
         js = json.loads(a.text)
@@ -340,8 +334,7 @@ def get_earnings(symbol):
         return False
 
 
-
-def get_earnings_by_type(js,key,type):
+def get_earnings_by_type(js, key, type):
     if type == "company_info":
         # print ( js.get("General"))
         info = js.get("General").get("Description")
@@ -420,7 +413,6 @@ def get_earnings_by_type(js,key,type):
     return result
 
 
-
 @task(name="update_stock_market_details_scheduler")
 def update_stock_market_details():
     import custom_packages.yfinance as yf
@@ -431,7 +423,7 @@ def update_stock_market_details():
     for stock in stocks:
         if str(stock.symbol) != "SYMBOL":
 
-            tickerData = yf.Ticker(str(stock.symbol)+".NS")
+            tickerData = yf.Ticker(str(stock.symbol) + ".NS")
             # print ("____   ",tickerData.info)
             try:
                 yf_info = tickerData.info
@@ -441,12 +433,12 @@ def update_stock_market_details():
 
             try:
 
-                stock_general_data,status = StockInfo.objects.get_or_create(stock=stock)
+                stock_general_data, status = StockInfo.objects.get_or_create(stock=stock)
                 try:
                     # print(str(stock.symbol)+".NS", "       trailingPE   ", yf_info["trailingPE"])
                     stock_general_data.trailing_pe = yf_info["trailingPE"]
                 except Exception as e:
-                    print("TRAILING PE ERROR   ",e)
+                    print("TRAILING PE ERROR   ", e)
                     pass
                 try:
                     # print(str(stock.symbol)+".NS", "       marketCap   ", yf_info["marketCap"])
@@ -477,9 +469,9 @@ def update_stock_market_details():
                     officers_list = []
                     officers_list = get_earnings_by_type(ear_resp, "", "officers_list")
                     data = {
-                        'officer_info':officers_list
+                        'officer_info': officers_list
                     }
-                    print("OFFICER LIST DATA   ",data)
+                    print("OFFICER LIST DATA   ", data)
                     stock_general_data.officers = data
                 except Exception as e:
                     print("OFFICER LIST ERROR   ", e)
@@ -533,10 +525,9 @@ def update_stock_market_details():
                     pass
                 stock_general_data.updated_at = datetime.datetime.now()
                 stock_general_data.save()
-                print(str(stock.symbol),">>>>>>>Completed",)
+                print(str(stock.symbol), ">>>>>>>Completed", )
             except Exception as e:
-                print ("UPDATE STOCK MARKET - ERROR FOR SYMBOL  :",str(stock.symbol),"    ",e)
-
+                print("UPDATE STOCK MARKET - ERROR FOR SYMBOL  :", str(stock.symbol), "    ", e)
 
 
 @task(name="update_stock_live_price_scheduler")
@@ -561,14 +552,14 @@ def update_live_price():
             st_h.last_update = today.date()
             st_h.save()
 
-            print("Live Price updated for========", st_h.stock.symbol, " ......       ",len(st_h.current_data))
+            print("Live Price updated for========", st_h.stock.symbol, " ......       ", len(st_h.current_data))
         except Exception as e:
-            print("Error for symbol     ",e)
+            print("Error for symbol     ", e)
 
 
 @task(name="update_transaction_table_scheduler")
 def update_transaction_table():
-    from accounts.models import Transaction,TransactionHistory
+    from accounts.models import Transaction, TransactionHistory
     from accounts.models import UserDetails
     from accounts.models import IdentityDetails
 
@@ -586,7 +577,7 @@ def update_transaction_table():
         print("YYYYY")
         try:
             for transaction_obj in Transaction.objects.filter(status="pending"):
-                print("SYMBOLLLL",transaction_obj.stockticker.symbol)
+                print("SYMBOLLLL", transaction_obj.stockticker.symbol)
                 import threading
                 def limit_order_purchase(transaction_obj):
 
@@ -595,32 +586,40 @@ def update_transaction_table():
 
                     identity = IdentityDetails.objects.get(id=user.identity.id)
 
-                    live_price = si.get_live_price(transaction_obj.stockticker.symbol+".NS")
-                    print("live_price     ",num_quantize(float(live_price)))
+                    live_price = si.get_live_price(transaction_obj.stockticker.symbol + ".NS")
+                    print("live_price     ", num_quantize(float(live_price)))
                     status_flag = 0
                     if transaction_obj.ordertype == "market_order":
                         status_flag = 1
-                    elif transaction_obj.ordertype == "limit_order" and num_quantize(float(live_price)) == num_quantize(float(transaction_obj.price)):
+                    elif transaction_obj.ordertype == "limit_order" and num_quantize(float(live_price)) == num_quantize(
+                            float(transaction_obj.price)):
                         status_flag = 1
 
                     if status_flag == 1:
                         transaction_obj.status = "executed"
                         transaction_obj.save()
                         from accounts.models import Position
-                        position_obj, status = Position.objects.get_or_create(userid=transaction_obj.user, stockname=transaction_obj.stock, ticker=transaction_obj.stockticker.symbol,
-                                                                         price=live_price, ordertype=transaction_obj.ordertype)
+                        position_obj, status = Position.objects.get_or_create(userid=transaction_obj.user,
+                                                                              stockname=transaction_obj.stock,
+                                                                              ticker=transaction_obj.stockticker.symbol,
+                                                                              price=live_price,
+                                                                              ordertype=transaction_obj.ordertype)
                         position_obj.transaction_details = transaction_obj
                         position_obj.save()
                         try:
-                            history_obj = TransactionHistory.objects.get_or_create(position_obj=position_obj,stock_number=transaction_obj.size)
+                            history_obj = TransactionHistory.objects.get_or_create(position_obj=position_obj,
+                                                                                   stock_number=transaction_obj.size)
                         except:
                             pass
                         try:
                             total_cash = float(live_price) * int(transaction_obj.size)
                             from accounts.models import GainLossHistory
-                            gl_history = GainLossHistory.objects.create(userid=transaction_obj.user,stock=transaction_obj.stock,total_cash=total_cash)
+                            gl_history = GainLossHistory.objects.create(userid=transaction_obj.user,
+                                                                        stock=transaction_obj.stock,
+                                                                        total_cash=total_cash)
                             gl_history.unrealised_gainloss = num_quantize(
-                                (float(live_price) - float(position_obj.transaction_details.price)) * int(transaction_obj.size))
+                                (float(live_price) - float(position_obj.transaction_details.price)) * int(
+                                    transaction_obj.size))
                             gl_history.position_obj = position_obj
                             gl_history.save()
                             user_buyingpower -= total_cash
@@ -634,34 +633,35 @@ def update_transaction_table():
                                 transaction_obj.delete()
                     print("Status====", transaction_obj.status)
 
-                process = threading.Thread(target=limit_order_purchase,args=(transaction_obj,))
+                process = threading.Thread(target=limit_order_purchase, args=(transaction_obj,))
                 process.start()
         except:
             pass
     else:
-        for transaction_obj in Transaction.objects.filter(expires="Good for day",status="pending"):
+        for transaction_obj in Transaction.objects.filter(expires="Good for day", status="pending"):
             if current_date.date() != transaction_obj.time.date():
                 transaction_obj.delete()
 
+
 def num_quantize(value, n_point=2):
-        """
-        :param value:
-        :param n_point:
-        :return:
-        """
-        from decimal import localcontext, Decimal, ROUND_HALF_UP
-        with localcontext() as ctx:
-            ctx.rounding = ROUND_HALF_UP
-            if value:
-                d_places = Decimal(10) ** -n_point
-                # Round to two places
-                value = Decimal(value).quantize(d_places)
-            return value
+    """
+    :param value:
+    :param n_point:
+    :return:
+    """
+    from decimal import localcontext, Decimal, ROUND_HALF_UP
+    with localcontext() as ctx:
+        ctx.rounding = ROUND_HALF_UP
+        if value:
+            d_places = Decimal(10) ** -n_point
+            # Round to two places
+            value = Decimal(value).quantize(d_places)
+        return value
 
 
 @task(name="update_gainloss_table")
 def update_gainloss_table():
-    from accounts.models import GainLossHistory,TotalGainLoss
+    from accounts.models import TotalGainLoss
     from django.contrib.auth.models import User
     current_date = datetime.datetime.now()
     current_time = current_date.time()
@@ -669,7 +669,7 @@ def update_gainloss_table():
     timeflag = 0
     if int(current_time.hour) > 18:
         timeflag = 1
-    elif int(current_time.hour) < 9 :
+    elif int(current_time.hour) < 9:
         timeflag = 1
     if timeflag == 1:
         for user_obj in User.objects.all():
@@ -682,7 +682,8 @@ def update_gainloss_table():
                     gl_obj.is_calculated = True
                     gl_obj.save()
             if flag == 1:
-                total_gl_obj = TotalGainLoss.objects.create(gainloss=total_gl,userid=user_obj,created_at=datetime.datetime.now())
+                total_gl_obj = TotalGainLoss.objects.create(gainloss=total_gl, userid=user_obj,
+                                                            created_at=datetime.datetime.now())
 
     from accounts.models import GainLossChartData
     for gl_chart_obj in GainLossChartData.objects.all():
@@ -711,7 +712,7 @@ def update_pos_table_latest_price():
                 value_list = []
                 for pos_obj in user_obj.userposition_rel.all():
                     live_price = si.get_live_price(pos_obj.stockname.symbol + ".NS")
-                    print("LIVE PRICEEEEE    ",num_quantize(live_price))
+                    print("LIVE PRICEEEEE    ", num_quantize(live_price))
                     pos_obj.price = num_quantize(live_price)
                     pos_obj.save()
 
@@ -733,9 +734,10 @@ def update_pos_table_latest_price():
                     gl_obj.save()
                 else:
                     gl_obj = GainLossChartData.objects.get(userid=user_obj)
-                    gl_obj.gainloss_data.append([int(date) * 1000, round(float(total_price),2)])
+                    gl_obj.gainloss_data.append([int(date) * 1000, round(float(total_price), 2)])
                     gl_obj.save()
+
             if user_obj.userposition_rel.all():
-                process = threading.Thread(target=update_position_table,args=(user_obj,))
+                process = threading.Thread(target=update_position_table, args=(user_obj,))
                 process.start()
                 process.join()

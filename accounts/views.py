@@ -838,8 +838,10 @@ class DashboardView(TemplateView):
 
         return render(request, self.template_name, context)
 
+
 class PositionTablesDetailsView(TemplateView):
     template_name = 'table-stock-position-details.html'
+
     def get(self,request,*args, **kwargs):
         context = {}
         position_obj_list = Position.objects.filter(userid=request.user).order_by("-id")
@@ -850,6 +852,7 @@ class PositionTablesDetailsView(TemplateView):
         except:
             context['current_amount'] = 0
         return render(request,self.template_name,context)
+
 
 def get_stock_details_json(symbol,request):
     """
@@ -1123,6 +1126,7 @@ def paginate_data(request,stock_symbol=None):
     except EmptyPage:
         transaction_list = paginator.page(paginator.num_pages)
     return transaction_list
+
 
 def get_position_details(request,stock_obj,position_obj,stock_price):
     context = {}
