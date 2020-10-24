@@ -3,6 +3,8 @@
 {% block content %}
 <!-- socket io js file for client side socket connection -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.1/socket.io.js" integrity="sha512-AcZyhRP/tbAEsXCCGlziPun5iFvcSUpEz2jKkx0blkYKbxU81F+iq8FURwPn1sYFeksJ+sDDrI5XujsqSobWdQ==" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"
+            integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.2/d3.min.js"></script>
 <style>
@@ -12,32 +14,68 @@
    .tick text {
     fill:#efefef;
 }
+  @media (max-width: 768px) {
+      .carousel-inner .carousel-item > div {
+          display: none;
+      }
+      .carousel-inner .carousel-item > div:first-child {
+          display: block;
+      }
+  }
+
+  .carousel-inner .carousel-item.active,
+  .carousel-inner .carousel-item-next,
+  .carousel-inner .carousel-item-prev {
+      display: flex;
+  }
+
+  /* display 3 */
+  @media (min-width: 768px) {
+      
+      .carousel-inner .carousel-item-right.active,
+      .carousel-inner .carousel-item-next {
+        transform: translateX(33.333%);
+      }
+      
+      .carousel-inner .carousel-item-left.active, 
+      .carousel-inner .carousel-item-prev {
+        transform: translateX(-33.333%);
+      }
+  }
+
+  .carousel-inner .carousel-item-right,
+  .carousel-inner .carousel-item-left{ 
+    transform: translateX(0);
+  }
+
 </style>
 <!-- <link rel="stylesheet" href="style.css" > -->
 <!-- socket io js file end -->
 
 <div class="container-fluid mtb15 no-fluid">
     <div class="row sm-gutters">
-            <div class="col-sm-1"> </div>
+      <div class="col-sm-1"> </div>
       <div class="col-md-8">
-        <div class="main-chart mb15">
-          <!-- TradingView Widget BEGIN -->
-          <div class="tradingview-widget-container">
-            <div id="tradingview_e8053" class="">
-              <input type="hidden" class="has_position" value="{{has_position}}">
-              <input type="hidden" class="theme-color" value="">
-              {% include 'includes/dashboard_includes/line-chart-main.html' %}
-            </div>
-          </div>
-          <!-- TradingView Widget END -->
-        </div>
-            {% include 'includes/dashboard_includes/position-table-details.html' %}
-            {% include 'includes/dashboard_includes/upcoming_activity.html' %}
-        <br>
-        <hr style="background-color: #fff">
+        
         <!-- New Live Chart start -->
+        <div class="col-md-12">
+          <div class="col-md-12" style="padding: 20px 0 0 0; ">
+            <label style="margin-bottom: 0;line-height: 0;font-size: 35px; font-weight: 800; color: #fff;">
+              {{page_symbol_name}}              
+            </label><br>
+            <label id="symbol_price" style="margin-bottom: 0;line-height: 1; font-size: 35px; font-weight: 800; color: #fff;">
+              $ 200.25              
+            </label>
+            
+          </div>
+          {% include 'includes/dashboard_includes/position-table-details.html' %}
+            {% include 'includes/dashboard_includes/upcoming_activity.html' %}
           <div id="liveChart"></div>
+
+          
         <!-- New Live Chart end -->
+        </div>
+
         <hr style="background-color: #fff">
         <div class="row">
           <div class="col-sm-10">
@@ -64,27 +102,74 @@
         <br>
         <br>
         <br>
-        <div class="top-g-con" style="">
+        <div class="top-g-con">
           <h4 style="color: #fff;margin-bottom: 24px;">Top Gainers</h4>
           <hr style="background-color: #fff">
-          {% for top_stock in top_gainers %}
-          <div class="col-md-3 col-sm-2 top-stocks">
-          <div class="markets-capital-item">
-            <h6>
-              <span>{{top_stock.symbol}}</span>
-            </h6>
-            <div class="markets-capital-details">
-              <h6 class="s-ltp">₹{{top_stock.ltp}}</h6>
-              <h5 class="green">{{top_stock.netPrice}}% <i class="icon ion-md-arrow-up"></i></h5>
-            </div>
+          
 
+          <div class="container text-center my-3">
+            <div class="row mx-auto my-auto">
+                <div id="recipeCarousel" class="carousel slide w-100" data-ride="carousel">
+                    <div class="carousel-inner w-100" role="listbox">
+                      {% for top_stock in top_gainers %}
+                      <div class="carousel-item">
+                        <div class="col-md-3 col-sm-2 top-stocks">
+                          <div class="markets-capital-item">
+                            <h6>
+                              <span>{{top_stock.symbol}}</span>
+                            </h6>
+                            <div class="markets-capital-details">
+                              <h6 class="s-ltp">₹{{top_stock.ltp}}</h6>
+                              <h5 class="green">{{top_stock.netPrice}}% <i class="icon ion-md-arrow-up"></i></h5>
+                            </div>
+
+                          </div>
+                        </div>
+                      </div>
+                      {% endfor %}
+                      <a class="carousel-control-prev w-auto" href="#recipeCarousel" role="button" data-slide="prev">
+                          <span class="carousel-control-prev-icon bg-dark border border-dark rounded-circle" aria-hidden="true"></span>
+                          <span class="sr-only">Previous</span>
+                      </a>
+                      <a class="carousel-control-next w-auto" href="#recipeCarousel" role="button" data-slide="next">
+                          <span class="carousel-control-next-icon bg-dark border border-dark rounded-circle" aria-hidden="true"></span>
+                          <span class="sr-only">Next</span>
+                      </a>
+                  </div>
+              </div>
+            </div>
           </div>
-        </div>
-          {% endfor %}
+          <script type="text/javascript">
+            $(document).ready(function(e){
+              $(".carousel-item").first().addClass("active");
+              $('#recipeCarousel').carousel({
+                interval: 10000
+              })
+
+              $('.carousel .carousel-item').each(function(){
+                  var minPerSlide = 4;
+                  var next = $(this).next();
+                  if (!next.length) {
+                  next = $(this).siblings(':first');
+                  }
+                  next.children(':first-child').clone().appendTo($(this));
+                  
+                  for (var i=0;i<minPerSlide;i++) {
+                      next=next.next();
+                      if (!next.length) {
+                        next = $(this).siblings(':first');
+                      }
+                      
+                      next.children(':first-child').clone().appendTo($(this));
+                    }
+              });
+
+            });
+          </script>
         </div>
       </div>
       <div class="col-md-3">
-<!--        {% include 'includes/dashboard_includes/stock_market_settings.html' %}-->
+        {% include 'includes/dashboard_includes/stock_market_settings.html' %}
         {% include 'includes/dashboard_includes/watchlist_and_shares.html' %}
       </div>
 
@@ -122,14 +207,7 @@
                   console.warn('init(): Element for "'+this.selector+'" selector not found');
                   return;
               }
-
-              //console.log('d3 version: ', d3.version);
-
-              //this.seedData();
-
               this.draw();
-
-              //window.setInterval(this.updateData, D3_CHART.options.duration);
           },
 
           updateData: function(){
@@ -149,10 +227,12 @@
               var self = this;
 
               // Based on https://bl.ocks.org/mbostock/3884955
+              self.data = self.dataSource;
               self.data = ["last_price"].map(function(c) {
                   return {
                       label: c,
                       values: self.dataSource.map(function(d) {
+                          //console.log("d", d);
                           return {
                               time: +d.time,
                               value: d[c]
@@ -214,9 +294,9 @@
               var legendEnter = gEnter.append("g")
                   .attr("class", "legend")
                   .attr("stroke", "#0eb806")
-                  .attr("transform", "translate(" + (this.options.width-this.options.margins.right-this.options.margins.left-75) + ",25)");
+                  .attr("transform", "translate(" + (this.options.width-this.options.margins.right-this.options.margins.left-100) + ",25)");
               legendEnter.append("rect")
-                  .attr("width", 150)
+                  .attr("width", 250)
                   .attr("height", 50)
                   .attr("fill", "none")
                   .attr("stroke", "none")
@@ -288,42 +368,33 @@
 
               // clear element
               el.html("");
-          },
-
-          seedData: function() {
-              var now = new Date();
-              for (var i = 0; i < this.options.MAX_LENGTH; ++i) {
-                  this.dataSource.push({
-                      time: new Date(now.getTime() - ((this.options.MAX_LENGTH - i) * this.options.duration)),
-                      last_price: this.randomNumberBounds(0, 5)//,
-                      //y: this.randomNumberBounds(0, 2.5),
-                      //z: this.randomNumberBounds(0, 10)
-                  });
-              }
-              console.log(this.dataSource);
-          },
-
-          randomNumberBounds: function (min, max) {
-              return Math.floor(Math.random() * max) + min;
           }
       };
       
     </script>
     <script type="text/javascript">
+      var page_instrument =738561;
+      var symbol_exchange = '{{stock_symbol}}';
+      console.log(symbol_exchange);
       var price_data = [];
       D3_CHART.init();
 
       var socket = io.connect('http://13.233.127.208:3000/');
 
+      function getInstrumentTokenFromSocketBySymbol(symbol){
+        socket.emit('get-instrument-by-symbol', {
+          message : symbol,
+        });
+      }
 
       socket.on('announcements', function(data) {
-            console.log('Got announcement:', data.message);
+            //console.log('Got announcement:', data.message);
+            subscribeInstrument(page_instrument);
         });
 
       socket.on('historical-data', function(data) {
             console.log('Got announcement:', data.message);
-
-        });
+      });
 
       function sendMessage(){
         var ms = document.getElementById("inputBox").value;
@@ -335,7 +406,6 @@
 
       function subscribeInstrument(instrument_token){
         var instrument = instrument_token;
-        console.log('sending instrument : ', instrument);
         socket.emit('subscribe-instrument', { 
           message: instrument,
         });
@@ -343,13 +413,13 @@
 
 
       socket.on('instrument-ticks', function(data) {
-        //console.log('Got announcement:', data.message);
+        console.log('Got announcement:', data.message);
         var tick = data.message;
         price_data.push({
-          time        : tick.last_order_time,
+          time        : new Date(tick.timestamp),
           last_price  : tick.last_price 
         });
-        D3_CHART.dataSource.push(lineData);
+        D3_CHART.dataSource = price_data ;
         if (D3_CHART.dataSource.length > 30) {
             D3_CHART.dataSource.shift();
         }
@@ -357,7 +427,12 @@
 
       });
 
-      subscribeInstrument(738561);
+      socket.on('set-instrument-token', function (data) {
+        page_instrument = data.message;
+        subscribeInstrument(page_instrument);
+      });
+
+      
 
     </script>
 {% endblock %}
