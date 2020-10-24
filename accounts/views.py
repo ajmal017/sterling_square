@@ -128,6 +128,8 @@ class DashboardView(TemplateView):
     def get(self, request, *args, **kwargs):
         context = {}
         if request.user.is_authenticated:
+            from nsetools import Nse
+            nse = Nse()
             # position_obj = request.user.userposition_rel.first()
             # if position_obj:
             #     stock_obj = StockNames.objects.get(symbol=position_obj.stockname.symbol)
@@ -259,8 +261,7 @@ class DashboardView(TemplateView):
         #     except:
         #         context['stockprice'] = 0
         # update_live_price()
-        from nsetools import Nse
-        nse = Nse()
+
         if request.user.is_authenticated:
             top_searched = TopSearched.objects.filter(userid=request.user)
             if len(top_searched) > 10:
@@ -286,11 +287,10 @@ class DashboardView(TemplateView):
         # context['top_gainers'] = resp.json()
         # print("............      ",nse.get_top_gainers()[:5])
         # context['top_gainers'] = nse.get_top_gainers()[:5]
-        from custom_packages.yahoo_finance import TG_DATA
-        context['top_gainers'] = TG_DATA
+        # from custom_packages.yahoo_finance import TG_DATA
+        context['top_gainers'] = nse.get_top_gainers()
         if request.is_ajax():
             from custom_packages.yahoo_finance import YahooFinance
-            from nsetools import Nse
             response = {}
             ajxtype = request.GET.get("type")
             symbol = request.GET.get("symbol")
@@ -1317,8 +1317,7 @@ class StockPageView(TemplateView):
         # context['top_gainers'] = resp.json()
         # print("............      ",nse.get_top_gainers()[:5])
         # context['top_gainers'] = nse.get_top_gainers()[:5]
-        from custom_packages.yahoo_finance import TG_DATA
-        context['top_gainers'] = TG_DATA
+        context['top_gainers'] = nse.get_top_gainers()
         if request.is_ajax():
             from custom_packages.yahoo_finance import YahooFinance
             from nsetools import Nse
@@ -1805,7 +1804,7 @@ class StockSearchView(View):
 class GetLatestGainLossView(View):
 
     def get(self, request, *args, **kwargs):
-        response ={}
+        response = {}
         current_date = datetime.datetime.now()
         current_time = current_date.time()
         flag = 0
