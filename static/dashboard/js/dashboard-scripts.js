@@ -42,21 +42,14 @@ function highlight_letter(keyword) {
 
 $(document).on("keyup", ".stock-search", function () {
     var keyword = $(".stock-search").val().trim()
-//        $(".search-result").remove()
     $("#stock-auto-search").empty()
     if (keyword) {
-
-//           result = searchStockName(keyword)
-//           console.log("result    ",result)
-        // url = "https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords="+keyword+"&region='India'&apikey=7JE5BYJ2DV06U1HQ"
-//            url = "https://nseindia.com/live_market/dynaContent/live_watch/get_quote/ajaxCompanySearch.jsp?search=AXIS"
         $.ajax({
-            url: '/accounts/dashboard/',
+            url: '/accounts/dashboard/stock-search/',
             type: 'GET',
             async: true,
             data: {
-                'type': 'search_stock',
-                'keyword': keyword
+                'symbol': keyword
             },
             success: function (data) {
                 $("#stock-auto-search").empty()
@@ -83,69 +76,72 @@ $(document).on("click", ".dash-right-col-title-arrow", function () {
 
 
 $(document).on("click", ".s-result-code", function () {
+  console.log("called");
     symbol = $(this).html()
         $(".loadingio-spinner-spinner-lzgp9tuxt9").show()
              $(".dropdown-content").hide()
             $("#stock-auto-search").empty()
-setTimeout(function(){
-    $.ajax({
-                url:'/accounts/dashboard/',
-                type:'GET',
-                data:{
-                    'type':'get_stock_details',
-                    'symbol':symbol
-                },
-                success:function(data){
-                if (data.has_history == "True"){
-                console.log("data.has_history    ",data.has_history)
-                                        $("#container").empty()
-
-                    $(".top-g-con").show()
-
-
-                    $(".line-chart-main").replaceWith(data.line_chart_html)
-                    $(".scatter_plot_con").replaceWith(data.scatter_plot_html)
-                    $(".market-pairs").replaceWith(data.stock_market_settings_html)
-                    $(".company_info").replaceWith(data.company_info_html)
-                    $(".has_stock").val("True")
-                    $(".highcharts-series.highcharts-series-0.highcharts-line-series.highcharts-color-0").find(".highcharts-graph").css("stroke",data.color)
-                    AddReadMore();
-                    $(".price_1D").val(data.prev_day_price)
-                    $(".price_1m").val(data.prev_month_price)
-                    $(".price_3m").val(data.prev_3m_price)
-                    $(".price_6m").val(data.prev_6m_price)
-                    $(".price_1y").val(data.prev_y_price)
-                    $(".highcharts-button").each(function(){
-
-                        if($(this).hasClass("highcharts-button-pressed")){
-                            var key = $(this).find("text").html()
-                            prev_price = $(".price_"+key).val()
-                            live_price = $(".stock_price").val()
-                            get_price_change(symbol,key,live_price,prev_price)
-                           return false;
-                        }
-
-                    })
-                    if (data.tr_status == "True"){
-                        $(".ua-content").replaceWith(data.up_activity_html)
-                        $(".ua-content").show()
-                    }
-                    $(".pos-tabl-details-content").replaceWith(data.pos_table_details_html)
-                    $(".pos-tabl-details-content").show()
-  $('.dataTables_length').addClass('bs-select');
-                    $(".inp-stock-num").val(data.stock_num)
-                            $(".loadingio-spinner-spinner-lzgp9tuxt9").hide()
-
-
-                }else{
-                 console.log("data.h______________    ",data.has_history)
-                alert("Stock has no data")
-                location.reload()
-                }
-                }
-
-            })
-            }, 500);
+  window.location.href='/accounts/dashboard/stocks/NSE:'+`${symbol}/`;
+// setTimeout(function(){
+//     // window.location.href='/accounts/dashboard/stocks/NSE:'+`${symbol}/`;
+//     $.ajax({
+//                 url:'/accounts/dashboard/stocks/NSE:'+`${symbol}/`,
+//                 type:'GET',
+//                 // data:{
+//                 //     'type':'get_stock_details',
+//                 //     'symbol':symbol
+//                 // },
+//                 success:function(data){
+//                 if (data.has_history == "True"){
+//                 console.log("data.has_history    ",data.has_history)
+//                                         $("#container").empty()
+//
+//                     $(".top-g-con").show()
+//
+//
+//                     $(".line-chart-main").replaceWith(data.line_chart_html)
+//                     $(".scatter_plot_con").replaceWith(data.scatter_plot_html)
+//                     $(".market-pairs").replaceWith(data.stock_market_settings_html)
+//                     $(".company_info").replaceWith(data.company_info_html)
+//                     $(".has_stock").val("True")
+//                     $(".highcharts-series.highcharts-series-0.highcharts-line-series.highcharts-color-0").find(".highcharts-graph").css("stroke",data.color)
+//                     AddReadMore();
+//                     $(".price_1D").val(data.prev_day_price)
+//                     $(".price_1m").val(data.prev_month_price)
+//                     $(".price_3m").val(data.prev_3m_price)
+//                     $(".price_6m").val(data.prev_6m_price)
+//                     $(".price_1y").val(data.prev_y_price)
+//                     $(".highcharts-button").each(function(){
+//
+//                         if($(this).hasClass("highcharts-button-pressed")){
+//                             var key = $(this).find("text").html()
+//                             prev_price = $(".price_"+key).val()
+//                             live_price = $(".stock_price").val()
+//                             get_price_change(symbol,key,live_price,prev_price)
+//                            return false;
+//                         }
+//
+//                     })
+//                     if (data.tr_status == "True"){
+//                         $(".ua-content").replaceWith(data.up_activity_html)
+//                         $(".ua-content").show()
+//                     }
+//                     $(".pos-tabl-details-content").replaceWith(data.pos_table_details_html)
+//                     $(".pos-tabl-details-content").show()
+//   $('.dataTables_length').addClass('bs-select');
+//                     $(".inp-stock-num").val(data.stock_num)
+//                             $(".loadingio-spinner-spinner-lzgp9tuxt9").hide()
+//
+//
+//                 }else{
+//                  console.log("data.h______________    ",data.has_history)
+//                 alert("Stock has no data")
+//                 location.reload()
+//                 }
+//                 }
+//
+//             })
+//             }, 500);
 })
 
 $(document).on("keyup", ".share-num", function () {

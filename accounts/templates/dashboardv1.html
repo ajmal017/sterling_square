@@ -357,9 +357,6 @@
                       .transition();
               }
           },
-
-
-
           clearChart: function(){
               var el = d3.select(this.selector);
               if(el.empty()){
@@ -380,8 +377,8 @@
       var price_data = [];
       D3_CHART.init();
 
-      //var socket = io.connect('http://13.233.127.208:3000/');
-      var socket = io.connect('http://127.0.0.1:3000/');
+      var socket = io.connect('http://13.233.127.208:3000/');
+      {#var socket = io.connect('http://127.0.0.1:3000/');#}
 
       function getInstrumentTokenFromSocketBySymbol(symbol){
         socket.emit('get-instrument-by-symbol', {

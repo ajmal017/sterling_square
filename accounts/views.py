@@ -1,29 +1,26 @@
 import datetime
 import json
-import random
 import threading
 
 import dateutil
 import requests
+from django.contrib.auth import login
+from django.contrib.auth import views as auth_views, logout
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
-from django.contrib.auth import views as auth_views, logout
-from django.contrib.auth import login
 from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from yahoo_fin import stock_info as si
 
-from accounts.forms import CustomAuthForm, UserDetailsForm, BasicDetailsForm, IdentityDetailsForm
-
+from accounts.forms import CustomAuthForm, UserDetailsForm, IdentityDetailsForm
 # Create your views here.
-from accounts.models import BasicDetails, IdentityDetails, UserDetails, StockNames, StockHistory, StockGeneral, \
-    StockInfo, \
+from accounts.models import IdentityDetails, UserDetails, StockNames, StockHistory, StockInfo, \
     TopSearched, Transaction, Position, TransactionHistory, GainLossHistory, TotalGainLoss, GainLossChartData
 from sterling_square import tokens
-from sterling_square.celery_file import update_stock_market_details, update_live_price
 
 
 class CustomLogin(auth_views.LoginView):
@@ -126,7 +123,7 @@ class SignupView(TemplateView):
 
 
 class DashboardView(TemplateView):
-    template_name = 'dashboard.html' #'dashboard.html'
+    template_name = 'dashboard.html'  # 'dashboard.html'
 
     def get(self, request, *args, **kwargs):
         context = {}
@@ -161,7 +158,7 @@ class DashboardView(TemplateView):
                 buyingpower = UserDetails.objects.get(user=request.user).identity.buyingpower
             except:
                 buyingpower = 0
-            print("buyingpower   ",buyingpower)
+            print("buyingpower   ", buyingpower)
             date = datetime.datetime.timestamp(datetime.datetime.now())
             choice_arr = []
             start_date = datetime.date(2019, 1, 1)
@@ -192,15 +189,15 @@ class DashboardView(TemplateView):
             #         break
             # for pos_obj in Position.objects.filter(userid=request.user):
             #     date = datetime.datetime.timestamp(pos_obj.created_at)
-                # stock_obj = StockNames.objects.get(symbol=pos_obj.stockname.symbol)
-                # data = stock_obj.history.history_json['data']
-                # response = stock_obj.history.history_json['response']
-                # try:
-                #     pos_stockprice = data['stockprice']
-                # except:
-                #     pos_stockprice = round(si.get_live_price(stock_obj.symbol + ".NS"), 2)
-                # temp_price_list.append(int(date) * 1000)
-                # value_list.append([int(date) * 1000,float(pos_obj.price)+float(buyingpower)])
+            # stock_obj = StockNames.objects.get(symbol=pos_obj.stockname.symbol)
+            # data = stock_obj.history.history_json['data']
+            # response = stock_obj.history.history_json['response']
+            # try:
+            #     pos_stockprice = data['stockprice']
+            # except:
+            #     pos_stockprice = round(si.get_live_price(stock_obj.symbol + ".NS"), 2)
+            # temp_price_list.append(int(date) * 1000)
+            # value_list.append([int(date) * 1000,float(pos_obj.price)+float(buyingpower)])
             # print("value_listvalue_list    ",value_list)
             # try:
             current_date = datetime.datetime.now()
@@ -214,14 +211,14 @@ class DashboardView(TemplateView):
             if timeflag == 1:
                 try:
                     gl_obj = GainLossChartData.objects.get(userid=request.user)
-                    value_list = [[x[0],float(x[1]) + float(buyingpower)] for x in gl_obj.gainloss_data]
+                    value_list = [[x[0], float(x[1]) + float(buyingpower)] for x in gl_obj.gainloss_data]
                 except:
                     value_list = []
                     if TotalGainLoss.objects.filter(userid=request.user):
                         for t_gl_obj in TotalGainLoss.objects.filter(userid=request.user):
                             # print("::::  ",t_gl_obj.gainloss)
                             tgl_date = datetime.datetime.timestamp(t_gl_obj.created_at)
-                            value_list.append([int(tgl_date) * 1000,float(t_gl_obj.gainloss) + float(buyingpower)])
+                            value_list.append([int(tgl_date) * 1000, float(t_gl_obj.gainloss) + float(buyingpower)])
             else:
                 if TotalGainLoss.objects.filter(userid=request.user):
                     for t_gl_obj in TotalGainLoss.objects.filter(userid=request.user):
@@ -230,7 +227,7 @@ class DashboardView(TemplateView):
                         value_list.append([int(tgl_date) * 1000, float(t_gl_obj.gainloss) + float(buyingpower)])
             # print("><><><<<    ",value_list)
             # print("value_list--   ",value_list)
-                # value_list = gl_obj.gainloss_data
+            # value_list = gl_obj.gainloss_data
             # except:
             #     value_list = []
             # if not GainLossChartData.objects.filter(userid=request.user):
@@ -284,9 +281,9 @@ class DashboardView(TemplateView):
         #     "Upgrade-Insecure-Requests": "1", "DNT": "1",
         #     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         #     "Accept-Language": "en-US,en;q=0.5", "Accept-Encoding": "gzip, deflate"}
-        #resp = requests.get(go_to_url,headers=headers)
-        #print("RRRR   ",resp,resp.json())
-        #context['top_gainers'] = resp.json()
+        # resp = requests.get(go_to_url,headers=headers)
+        # print("RRRR   ",resp,resp.json())
+        # context['top_gainers'] = resp.json()
         # print("............      ",nse.get_top_gainers()[:5])
         # context['top_gainers'] = nse.get_top_gainers()[:5]
         from custom_packages.yahoo_finance import TG_DATA
@@ -352,16 +349,18 @@ class DashboardView(TemplateView):
                     response['status'] = "removed"
                     data['has_pos'] = "False"
                     data['stockname'] = stock_obj.name
-                    if Position.objects.filter(userid=request.user,stockname=stock_obj):
+                    if Position.objects.filter(userid=request.user, stockname=stock_obj):
                         data['has_pos'] = "True"
                     try:
                         data['stockprice'] = response['stockprice']
                     except:
                         data['stockprice'] = round(si.get_live_price(stock_obj.symbol + ".NS"), 2)
-                    response['line_chart_html'] = render_to_string('includes/dashboard_includes/line-chart-main.html', data)
+                    response['line_chart_html'] = render_to_string('includes/dashboard_includes/line-chart-main.html',
+                                                                   data)
                     response['stock_market_settings_html'] = render_to_string(
                         'includes/dashboard_includes/stock_market_settings.html', data)
-                    response['company_info_html'] = render_to_string('includes/dashboard_includes/company_info.html', data)
+                    response['company_info_html'] = render_to_string('includes/dashboard_includes/company_info.html',
+                                                                     data)
                     response['scatter_plot_html'] = render_to_string(
                         'includes/dashboard_includes/scatter-plot-chart-main.html', data)
                     try:
@@ -371,19 +370,20 @@ class DashboardView(TemplateView):
                     transaction_list = paginate_data(request)
                     # print(transaction_list,">???")
                     if transaction_list:
-                        response['up_activity_html'] = render_to_string("includes/dashboard_includes/upcoming_activity.html",{
-                            "transaction_list":transaction_list
-                        })
+                        response['up_activity_html'] = render_to_string(
+                            "includes/dashboard_includes/upcoming_activity.html", {
+                                "transaction_list": transaction_list
+                            })
                         response['tr_status'] = "True"
                     total_share = 0
                     try:
-                        print (">>?><>>>>>>><")
-                        position_obj = Position.objects.filter(userid=request.user,stockname=stock_obj)[0]
+                        print(">>?><>>>>>>><")
+                        position_obj = Position.objects.filter(userid=request.user, stockname=stock_obj)[0]
                         try:
                             pos_stockprice = response['stockprice']
                         except:
                             pos_stockprice = round(si.get_live_price(stock_obj.symbol + ".NS"), 2)
-                        response2 = get_position_details(request, stock_obj, position_obj,pos_stockprice)
+                        response2 = get_position_details(request, stock_obj, position_obj, pos_stockprice)
                         response['has_position'] = True
                         response2['stockprice'] = pos_stockprice
                         response['pos_table_details_html'] = render_to_string(
@@ -391,13 +391,13 @@ class DashboardView(TemplateView):
                         # response.update(response2)
                         from django.db.models import Sum
 
-                        for pos_stock in Position.objects.filter(userid=request.user,stockname=stock_obj):
+                        for pos_stock in Position.objects.filter(userid=request.user, stockname=stock_obj):
                             total_share += int(pos_stock.transaction_details.size)
 
-                        print ("RESPONSE  ------------------------------ \n   ",response['stock_num'])
+                        print("RESPONSE  ------------------------------ \n   ", response['stock_num'])
 
                     except Exception as e:
-                        print ("GET STOCK DETAIL POS ERROR    ",e)
+                        print("GET STOCK DETAIL POS ERROR    ", e)
                     response['stock_num'] = total_share
                     response['has_history'] = "True"
                     # response['dashboard_html'] = render_to_string('dashboard.html',data)
@@ -409,11 +409,12 @@ class DashboardView(TemplateView):
                 # tata_power = YahooFinance(symbol+'.NS', result_range="1d", interval='1m',
                 #                           dropna='True').result
                 current_time = datetime.datetime.now().time()
-                print("???????????????????????????//",int(current_time.hour))
+                print("???????????????????????????//", int(current_time.hour))
                 if int(current_time.hour) >= 9 and int(current_time.hour) < 15:
                     live_price = si.get_live_price(symbol + ".NS")
                     # live_price= tata_power.values.tolist()[len(tata_power.values.tolist()) - 1][0]
-                    process = threading.Thread(target=update_position_and_gainloss,args=(live_price,symbol,request.user,))
+                    process = threading.Thread(target=update_position_and_gainloss,
+                                               args=(live_price, symbol, request.user,))
                     process.start()
                     process.join()
                     response['data'] = float(str(num_quantize(live_price)))
@@ -421,7 +422,8 @@ class DashboardView(TemplateView):
                 elif int(current_time.hour) == 15:
                     if int(current_time.minute) <= 30:
                         live_price = si.get_live_price(symbol + ".NS")
-                        process = threading.Thread(target=update_position_and_gainloss, args=(live_price, symbol,request.user,))
+                        process = threading.Thread(target=update_position_and_gainloss,
+                                                   args=(live_price, symbol, request.user,))
                         process.start()
                         process.join()
                         # live_price = tata_power.values.tolist()[len(tata_power.values.tolist()) - 1][0]
@@ -660,8 +662,8 @@ class DashboardView(TemplateView):
                 user_obj = UserDetails.objects.get(user=request.user)
                 identity_obj = IdentityDetails.objects.get(id=user_obj.identity.id)
                 buyingpower = float(identity_obj.buyingpower)
-                for pos_obj in Position.objects.filter(userid=request.user,ticker=symbol).order_by("id"):
-                    print("share_num    ",share_num)
+                for pos_obj in Position.objects.filter(userid=request.user, ticker=symbol).order_by("id"):
+                    print("share_num    ", share_num)
 
                     stock_num = int(pos_obj.transaction_details.size)
                     print("stock_num    ", stock_num)
@@ -671,15 +673,19 @@ class DashboardView(TemplateView):
                         pos_obj.transaction_details.size = stock_num
                         pos_obj.transaction_details.save()
                         try:
-                            history_obj = TransactionHistory.objects.get_or_create(position_obj=pos_obj,stock_number=share_num,status="sell")
+                            history_obj = TransactionHistory.objects.get_or_create(position_obj=pos_obj,
+                                                                                   stock_number=share_num,
+                                                                                   status="sell")
                         except:
                             pass
                         try:
-                            realised_gainloss = (float(current_price) - float(pos_obj.transaction_details.price)) * int(share_num)
+                            realised_gainloss = (float(current_price) - float(pos_obj.transaction_details.price)) * int(
+                                share_num)
                             gl_obj = GainLossHistory.objects.get(position_obj=pos_obj)
                             gl_obj.realised_gainloss = num_quantize(realised_gainloss)
                             buyingpower += realised_gainloss
-                            print(",,,,,,,,,,,,,,,,1111111111        buyingpower", buyingpower,num_quantize(realised_gainloss))
+                            print(",,,,,,,,,,,,,,,,1111111111        buyingpower", buyingpower,
+                                  num_quantize(realised_gainloss))
                             gl_obj.save()
 
                         except:
@@ -690,18 +696,22 @@ class DashboardView(TemplateView):
                         pos_obj.transaction_details.size = stock_num
                         pos_obj.transaction_details.save()
                         try:
-                            history_obj = TransactionHistory.objects.get_or_create(position_obj=pos_obj,stock_number=share_num,status="sell")
+                            history_obj = TransactionHistory.objects.get_or_create(position_obj=pos_obj,
+                                                                                   stock_number=share_num,
+                                                                                   status="sell")
                         except:
                             pass
                         try:
-                            realised_gainloss = (float(current_price) - float(pos_obj.transaction_details.price)) * int(share_num)
+                            realised_gainloss = (float(current_price) - float(pos_obj.transaction_details.price)) * int(
+                                share_num)
                             gl_obj = GainLossHistory.objects.get(position_obj=pos_obj)
                             gl_obj.realised_gainloss = num_quantize(realised_gainloss)
                             buyingpower += realised_gainloss
-                            print(",,,,,,,,,,,,,,,,2222222222222    buyingpower",buyingpower,num_quantize(realised_gainloss))
+                            print(",,,,,,,,,,,,,,,,2222222222222    buyingpower", buyingpower,
+                                  num_quantize(realised_gainloss))
                             gl_obj.save()
                         except Exception as e:
-                            print("ERRORRRR  SELL STOCK  ",e)
+                            print("ERRORRRR  SELL STOCK  ", e)
                             pass
                         break
                     else:
@@ -709,15 +719,19 @@ class DashboardView(TemplateView):
                         pos_obj.transaction_details.size = 0
                         pos_obj.transaction_details.save()
                         try:
-                            history_obj = TransactionHistory.objects.get_or_create(position_obj=pos_obj,stock_number=stock_num,status="sell")
+                            history_obj = TransactionHistory.objects.get_or_create(position_obj=pos_obj,
+                                                                                   stock_number=stock_num,
+                                                                                   status="sell")
                         except:
                             pass
                         try:
-                            realised_gainloss = (float(current_price) - float(pos_obj.transaction_details.price)) * int(stock_num)
+                            realised_gainloss = (float(current_price) - float(pos_obj.transaction_details.price)) * int(
+                                stock_num)
                             gl_obj = GainLossHistory.objects.get(position_obj=pos_obj)
                             gl_obj.realised_gainloss = num_quantize(realised_gainloss)
                             buyingpower += realised_gainloss
-                            print(",,,,,,,,,,,,,,,,33333333333      buyingpower", buyingpower,num_quantize(realised_gainloss))
+                            print(",,,,,,,,,,,,,,,,33333333333      buyingpower", buyingpower,
+                                  num_quantize(realised_gainloss))
                             gl_obj.save()
                         except:
                             pass
@@ -727,42 +741,9 @@ class DashboardView(TemplateView):
                     if int(pos_obj.transaction_details.size) == 0:
                         print("###########    REMAINING SHARE    ", pos_obj.transaction_details.size)
                         pos_obj.delete()
-                    print("BUYYYING POWERRRR   ",buyingpower)
+                    print("BUYYYING POWERRRR   ", buyingpower)
                 identity_obj.buyingpower = num_quantize(buyingpower)
                 identity_obj.save()
-            elif ajxtype == "get_latest_gainloss":
-                # values = [125,136,122,128,111,145,132,130,120,125,127,138]
-                # response['gainloss_val'] = get_latest_gainloss(request)
-                # response['gainloss_val'] = random.choice(values)
-                # date = datetime.datetime.timestamp(datetime.datetime.now())
-                current_date = datetime.datetime.now()
-                current_time = current_date.time()
-                flag = 0
-                if int(current_time.hour) >= 9 and int(current_time.hour) < 15:
-                    flag = 1
-                elif int(current_time.hour) == 15:
-                    if int(current_time.minute) <= 30:
-                        flag = 1
-                if flag == 1:
-                    try:
-                        buyingpower = UserDetails.objects.get(user=request.user).identity.buyingpower
-                    except:
-                        buyingpower = 0
-
-
-                    try:
-                        gl_data = GainLossChartData.objects.get(userid=request.user).gainloss_data
-                        response['gainloss_val'] = round(float(num_quantize(float(gl_data[-1][1]) + float(buyingpower))),2)
-                        response['gl_status'] = True
-                    except:
-                        response['gainloss_val'] = 0.00
-                        response['gl_status'] = False
-                else:
-                    response['gl_status'] = False
-                # gl_data.gainloss_data.append([int(date) * 1000,get_latest_gainloss(request)])
-                # gl_data.gainloss_data.append([int(date) * 1000,random.choice(values)])
-                # gl_data.gainloss_data.append()
-                # gl_data.save()
 
             # elif ajxtype == "chart_sort_gainloss":
             #     sort_type = request.GET.get("sort_type")
@@ -785,62 +766,14 @@ class DashboardView(TemplateView):
             #         pass
             #     else:
             #         pass
-
-
-            else:
-
-                from nsepy import get_history
-                nse = Nse()
-                all_stocks = StockNames.objects.all()
-                search_q = str(request.GET.get("keyword")).lower()
-                # search_q = "sbi"
-                stock_list = []
-                # print (q,"???????????????????????????????")
-                limit = 1
-                for i in all_stocks:
-                    # if limit >= 10:
-                    if search_q in i.symbol.lower() or search_q in i.name.lower():
-                        # stock,status = StockNames.objects.get_or_create(symbol=i,name=q[i])
-                        # print(i,">>>>",all_socks[i],"          ",stock,status)
-                        # print(nse.get_quote(i).get("symbol"))
-                        # print(nse.get_quote(i).get("companyName"))
-                        if i.symbol != "SYMBOL" and i.name != "NAME OF COMPANY":
-                            stock_dict = {
-                                "symbol": i.symbol,
-                                "name": i.name
-                            }
-                            stock_list.append(stock_dict)
-                            # limit += 1
-                if len(stock_list) > 10:
-                    stock_list = stock_list[:10]
-                response['stock_list'] = stock_list
             return HttpResponse(json.dumps(response), content_type="application/json")
-        # else:
-        #     from nsetools import Nse
-        #     nse = Nse()
-        #     q = nse.get_stock_codes()
-        #     for i in q:
-        #         StockNames.objects.get_or_create(symbol=i, name=q[i])
-        import requests
-
-        # headers = {'Accept': '*/*',
-        #         'Accept-Language': 'en-US,en;q=0.5',
-        #         'Host': 'nseindia.com',
-        #         'Referer': "https://www.nseindia.com/live_market\
-        #         /dynaContent/live_watch/get_quote/GetQuote.jsp?symbol=INFY&illiquid=0&smeFlag=0&itpFlag=0",
-        #         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:28.0) Gecko/20100101 Firefox/28.0',
-        #         'X-Requested-With': 'XMLHttpRequest'
-        #         }
-        # SEARCH_URL = 'https://nseindia.com/live_market/dynaContent/live_watch/get_quote/ajaxCompanySearch.jsp?search=AXIS'
-        # r = requests.get(SEARCH_URL,headers=headers)
-        # print(r)
-        # print(r.json())
-
         return render(request, self.template_name, context)
+
 
 class PositionTablesDetailsView(TemplateView):
     template_name = 'table-stock-position-details.html'
-    def get(self,request,*args, **kwargs):
+
+    def get(self, request, *args, **kwargs):
         context = {}
         position_obj_list = Position.objects.filter(userid=request.user).order_by("-id")
         # print("position_obj_list   ",position_obj_list)
@@ -849,9 +782,10 @@ class PositionTablesDetailsView(TemplateView):
             context['current_amount'] = UserDetails.objects.get(user=request.user).identity.buyingpower
         except:
             context['current_amount'] = 0
-        return render(request,self.template_name,context)
+        return render(request, self.template_name, context)
 
-def get_stock_details_json(symbol,request):
+
+def get_stock_details_json(symbol, request):
     """
 
     :param symbol:
@@ -931,8 +865,8 @@ def get_stock_details_json(symbol,request):
         # temp_price_list.append(int(date) * 1000)
         data['stock_price_list'].append([int(date) * 1000, float(t_gainloss.gainloss)])
     data['stockprice'] = num_quantize(si.get_live_price(symbol + ".NS"))
-    print("STOCK PRICE  ----  ",data['stock_price_list'])
-    return data,response
+    print("STOCK PRICE  ----  ", data['stock_price_list'])
+    return data, response
 
 
 def price_change(key, symbol, live_price, prev_price):
@@ -1105,13 +1039,13 @@ def num_quantize(value, n_point=2):
         return value
 
 
-def paginate_data(request,stock_symbol=None):
+def paginate_data(request, stock_symbol=None):
     from django.core.paginator import Paginator
     symbol = request.GET.get("symbol")
     if not request.GET.get("symbol"):
         symbol = stock_symbol
     stock_obj = StockNames.objects.get(symbol=symbol)
-    user_list = Transaction.objects.filter(userid=request.user,stockticker=stock_obj,status="pending")
+    user_list = Transaction.objects.filter(userid=request.user, stockticker=stock_obj, status="pending")
     page = request.GET.get('page', 1)
     paginator = Paginator(user_list, 5)
     from django.core.paginator import PageNotAnInteger
@@ -1124,7 +1058,8 @@ def paginate_data(request,stock_symbol=None):
         transaction_list = paginator.page(paginator.num_pages)
     return transaction_list
 
-def get_position_details(request,stock_obj,position_obj,stock_price):
+
+def get_position_details(request, stock_obj, position_obj, stock_price):
     context = {}
     transaction_list = paginate_data(request, stock_symbol=stock_obj.symbol)
     if transaction_list:
@@ -1152,9 +1087,9 @@ def get_position_details(request,stock_obj,position_obj,stock_price):
                 if pos_obj.unrealised_gainloss:
                     total_return += float(pos_obj.unrealised_gainloss)
         except Exception as e:
-            print("TOTAL RETURN ERROR    ",e)
+            print("TOTAL RETURN ERROR    ", e)
             pass
-        total_ret_perc = num_quantize((total_return / total_cost)*100)
+        total_ret_perc = num_quantize((total_return / total_cost) * 100)
         # if total_return >= 0:
         #     total_return = "+"+str(total_return)
         #     total_ret_perc = "+"+str(total_ret_perc)
@@ -1169,6 +1104,7 @@ def get_position_details(request,stock_obj,position_obj,stock_price):
         # context['today_return'] = num_quantize((float(stock_price) - average_cost) / average_cost)
     # print("context   ",context)
     return context
+
 
 def get_latest_gainloss(request):
     try:
@@ -1188,11 +1124,12 @@ def get_latest_gainloss(request):
     # print("?>?>?>?    ", float(total_gl) + float(buyingpower))
     return num_quantize(float(total_gl) + float(buyingpower))
 
-def update_position_and_gainloss(current_price,symbol,user):
+
+def update_position_and_gainloss(current_price, symbol, user):
     # total_price = 0
     # date = datetime.datetime.timestamp(datetime.datetime.now())
     # value_list = []
-    for pos_obj in Position.objects.filter(stockname__symbol=symbol,userid=user):
+    for pos_obj in Position.objects.filter(stockname__symbol=symbol, userid=user):
         try:
             gl_history = GainLossHistory.objects.get(position_obj=pos_obj)
             gl_history.unrealised_gainloss = num_quantize(
@@ -1200,7 +1137,7 @@ def update_position_and_gainloss(current_price,symbol,user):
                     pos_obj.transaction_details.size))
             gl_history.save()
         except Exception as e:
-            print("ERROR in update_position_and_gainloss FUNCTION",e)
+            print("ERROR in update_position_and_gainloss FUNCTION", e)
         # total_price += num_quantize(float(pos_obj.price))
     # value_list.append([int(date) * 1000, float(total_price)])
     # if not GainLossChartData.objects.filter(userid=user):
@@ -1215,7 +1152,7 @@ def update_position_and_gainloss(current_price,symbol,user):
 
 
 class StockPageView(TemplateView):
-    template_name = 'dashboardv1.html' 
+    template_name = 'dashboardv1.html'
 
     def get(self, request, *args, **kwargs):
         context = {}
@@ -1252,7 +1189,7 @@ class StockPageView(TemplateView):
                 buyingpower = UserDetails.objects.get(user=request.user).identity.buyingpower
             except:
                 buyingpower = 0
-            print("buyingpower   ",buyingpower)
+            print("buyingpower   ", buyingpower)
             date = datetime.datetime.timestamp(datetime.datetime.now())
             choice_arr = []
             start_date = datetime.date(2019, 1, 1)
@@ -1283,15 +1220,15 @@ class StockPageView(TemplateView):
             #         break
             # for pos_obj in Position.objects.filter(userid=request.user):
             #     date = datetime.datetime.timestamp(pos_obj.created_at)
-                # stock_obj = StockNames.objects.get(symbol=pos_obj.stockname.symbol)
-                # data = stock_obj.history.history_json['data']
-                # response = stock_obj.history.history_json['response']
-                # try:
-                #     pos_stockprice = data['stockprice']
-                # except:
-                #     pos_stockprice = round(si.get_live_price(stock_obj.symbol + ".NS"), 2)
-                # temp_price_list.append(int(date) * 1000)
-                # value_list.append([int(date) * 1000,float(pos_obj.price)+float(buyingpower)])
+            # stock_obj = StockNames.objects.get(symbol=pos_obj.stockname.symbol)
+            # data = stock_obj.history.history_json['data']
+            # response = stock_obj.history.history_json['response']
+            # try:
+            #     pos_stockprice = data['stockprice']
+            # except:
+            #     pos_stockprice = round(si.get_live_price(stock_obj.symbol + ".NS"), 2)
+            # temp_price_list.append(int(date) * 1000)
+            # value_list.append([int(date) * 1000,float(pos_obj.price)+float(buyingpower)])
             # print("value_listvalue_list    ",value_list)
             # try:
             current_date = datetime.datetime.now()
@@ -1305,14 +1242,14 @@ class StockPageView(TemplateView):
             if timeflag == 1:
                 try:
                     gl_obj = GainLossChartData.objects.get(userid=request.user)
-                    value_list = [[x[0],float(x[1]) + float(buyingpower)] for x in gl_obj.gainloss_data]
+                    value_list = [[x[0], float(x[1]) + float(buyingpower)] for x in gl_obj.gainloss_data]
                 except:
                     value_list = []
                     if TotalGainLoss.objects.filter(userid=request.user):
                         for t_gl_obj in TotalGainLoss.objects.filter(userid=request.user):
                             # print("::::  ",t_gl_obj.gainloss)
                             tgl_date = datetime.datetime.timestamp(t_gl_obj.created_at)
-                            value_list.append([int(tgl_date) * 1000,float(t_gl_obj.gainloss) + float(buyingpower)])
+                            value_list.append([int(tgl_date) * 1000, float(t_gl_obj.gainloss) + float(buyingpower)])
             else:
                 if TotalGainLoss.objects.filter(userid=request.user):
                     for t_gl_obj in TotalGainLoss.objects.filter(userid=request.user):
@@ -1321,7 +1258,7 @@ class StockPageView(TemplateView):
                         value_list.append([int(tgl_date) * 1000, float(t_gl_obj.gainloss) + float(buyingpower)])
             # print("><><><<<    ",value_list)
             # print("value_list--   ",value_list)
-                # value_list = gl_obj.gainloss_data
+            # value_list = gl_obj.gainloss_data
             # except:
             #     value_list = []
             # if not GainLossChartData.objects.filter(userid=request.user):
@@ -1375,9 +1312,9 @@ class StockPageView(TemplateView):
         #     "Upgrade-Insecure-Requests": "1", "DNT": "1",
         #     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         #     "Accept-Language": "en-US,en;q=0.5", "Accept-Encoding": "gzip, deflate"}
-        #resp = requests.get(go_to_url,headers=headers)
-        #print("RRRR   ",resp,resp.json())
-        #context['top_gainers'] = resp.json()
+        # resp = requests.get(go_to_url,headers=headers)
+        # print("RRRR   ",resp,resp.json())
+        # context['top_gainers'] = resp.json()
         # print("............      ",nse.get_top_gainers()[:5])
         # context['top_gainers'] = nse.get_top_gainers()[:5]
         from custom_packages.yahoo_finance import TG_DATA
@@ -1443,16 +1380,18 @@ class StockPageView(TemplateView):
                     response['status'] = "removed"
                     data['has_pos'] = "False"
                     data['stockname'] = stock_obj.name
-                    if Position.objects.filter(userid=request.user,stockname=stock_obj):
+                    if Position.objects.filter(userid=request.user, stockname=stock_obj):
                         data['has_pos'] = "True"
                     try:
                         data['stockprice'] = response['stockprice']
                     except:
                         data['stockprice'] = round(si.get_live_price(stock_obj.symbol + ".NS"), 2)
-                    response['line_chart_html'] = render_to_string('includes/dashboard_includes/line-chart-main.html', data)
+                    response['line_chart_html'] = render_to_string('includes/dashboard_includes/line-chart-main.html',
+                                                                   data)
                     response['stock_market_settings_html'] = render_to_string(
                         'includes/dashboard_includes/stock_market_settings.html', data)
-                    response['company_info_html'] = render_to_string('includes/dashboard_includes/company_info.html', data)
+                    response['company_info_html'] = render_to_string('includes/dashboard_includes/company_info.html',
+                                                                     data)
                     response['scatter_plot_html'] = render_to_string(
                         'includes/dashboard_includes/scatter-plot-chart-main.html', data)
                     try:
@@ -1462,19 +1401,20 @@ class StockPageView(TemplateView):
                     transaction_list = paginate_data(request)
                     # print(transaction_list,">???")
                     if transaction_list:
-                        response['up_activity_html'] = render_to_string("includes/dashboard_includes/upcoming_activity.html",{
-                            "transaction_list":transaction_list
-                        })
+                        response['up_activity_html'] = render_to_string(
+                            "includes/dashboard_includes/upcoming_activity.html", {
+                                "transaction_list": transaction_list
+                            })
                         response['tr_status'] = "True"
                     total_share = 0
                     try:
-                        print (">>?><>>>>>>><")
-                        position_obj = Position.objects.filter(userid=request.user,stockname=stock_obj)[0]
+                        print(">>?><>>>>>>><")
+                        position_obj = Position.objects.filter(userid=request.user, stockname=stock_obj)[0]
                         try:
                             pos_stockprice = response['stockprice']
                         except:
                             pos_stockprice = round(si.get_live_price(stock_obj.symbol + ".NS"), 2)
-                        response2 = get_position_details(request, stock_obj, position_obj,pos_stockprice)
+                        response2 = get_position_details(request, stock_obj, position_obj, pos_stockprice)
                         response['has_position'] = True
                         response2['stockprice'] = pos_stockprice
                         response['pos_table_details_html'] = render_to_string(
@@ -1482,13 +1422,13 @@ class StockPageView(TemplateView):
                         # response.update(response2)
                         from django.db.models import Sum
 
-                        for pos_stock in Position.objects.filter(userid=request.user,stockname=stock_obj):
+                        for pos_stock in Position.objects.filter(userid=request.user, stockname=stock_obj):
                             total_share += int(pos_stock.transaction_details.size)
 
-                        print ("RESPONSE  ------------------------------ \n   ",response['stock_num'])
+                        print("RESPONSE  ------------------------------ \n   ", response['stock_num'])
 
                     except Exception as e:
-                        print ("GET STOCK DETAIL POS ERROR    ",e)
+                        print("GET STOCK DETAIL POS ERROR    ", e)
                     response['stock_num'] = total_share
                     response['has_history'] = "True"
                     # response['dashboard_html'] = render_to_string('dashboard.html',data)
@@ -1500,11 +1440,12 @@ class StockPageView(TemplateView):
                 # tata_power = YahooFinance(symbol+'.NS', result_range="1d", interval='1m',
                 #                           dropna='True').result
                 current_time = datetime.datetime.now().time()
-                print("???????????????????????????//",int(current_time.hour))
+                print("???????????????????????????//", int(current_time.hour))
                 if int(current_time.hour) >= 9 and int(current_time.hour) < 15:
                     live_price = si.get_live_price(symbol + ".NS")
                     # live_price= tata_power.values.tolist()[len(tata_power.values.tolist()) - 1][0]
-                    process = threading.Thread(target=update_position_and_gainloss,args=(live_price,symbol,request.user,))
+                    process = threading.Thread(target=update_position_and_gainloss,
+                                               args=(live_price, symbol, request.user,))
                     process.start()
                     process.join()
                     response['data'] = float(str(num_quantize(live_price)))
@@ -1512,7 +1453,8 @@ class StockPageView(TemplateView):
                 elif int(current_time.hour) == 15:
                     if int(current_time.minute) <= 30:
                         live_price = si.get_live_price(symbol + ".NS")
-                        process = threading.Thread(target=update_position_and_gainloss, args=(live_price, symbol,request.user,))
+                        process = threading.Thread(target=update_position_and_gainloss,
+                                                   args=(live_price, symbol, request.user,))
                         process.start()
                         process.join()
                         # live_price = tata_power.values.tolist()[len(tata_power.values.tolist()) - 1][0]
@@ -1751,8 +1693,8 @@ class StockPageView(TemplateView):
                 user_obj = UserDetails.objects.get(user=request.user)
                 identity_obj = IdentityDetails.objects.get(id=user_obj.identity.id)
                 buyingpower = float(identity_obj.buyingpower)
-                for pos_obj in Position.objects.filter(userid=request.user,ticker=symbol).order_by("id"):
-                    print("share_num    ",share_num)
+                for pos_obj in Position.objects.filter(userid=request.user, ticker=symbol).order_by("id"):
+                    print("share_num    ", share_num)
 
                     stock_num = int(pos_obj.transaction_details.size)
                     print("stock_num    ", stock_num)
@@ -1762,15 +1704,19 @@ class StockPageView(TemplateView):
                         pos_obj.transaction_details.size = stock_num
                         pos_obj.transaction_details.save()
                         try:
-                            history_obj = TransactionHistory.objects.get_or_create(position_obj=pos_obj,stock_number=share_num,status="sell")
+                            history_obj = TransactionHistory.objects.get_or_create(position_obj=pos_obj,
+                                                                                   stock_number=share_num,
+                                                                                   status="sell")
                         except:
                             pass
                         try:
-                            realised_gainloss = (float(current_price) - float(pos_obj.transaction_details.price)) * int(share_num)
+                            realised_gainloss = (float(current_price) - float(pos_obj.transaction_details.price)) * int(
+                                share_num)
                             gl_obj = GainLossHistory.objects.get(position_obj=pos_obj)
                             gl_obj.realised_gainloss = num_quantize(realised_gainloss)
                             buyingpower += realised_gainloss
-                            print(",,,,,,,,,,,,,,,,1111111111        buyingpower", buyingpower,num_quantize(realised_gainloss))
+                            print(",,,,,,,,,,,,,,,,1111111111        buyingpower", buyingpower,
+                                  num_quantize(realised_gainloss))
                             gl_obj.save()
 
                         except:
@@ -1781,18 +1727,22 @@ class StockPageView(TemplateView):
                         pos_obj.transaction_details.size = stock_num
                         pos_obj.transaction_details.save()
                         try:
-                            history_obj = TransactionHistory.objects.get_or_create(position_obj=pos_obj,stock_number=share_num,status="sell")
+                            history_obj = TransactionHistory.objects.get_or_create(position_obj=pos_obj,
+                                                                                   stock_number=share_num,
+                                                                                   status="sell")
                         except:
                             pass
                         try:
-                            realised_gainloss = (float(current_price) - float(pos_obj.transaction_details.price)) * int(share_num)
+                            realised_gainloss = (float(current_price) - float(pos_obj.transaction_details.price)) * int(
+                                share_num)
                             gl_obj = GainLossHistory.objects.get(position_obj=pos_obj)
                             gl_obj.realised_gainloss = num_quantize(realised_gainloss)
                             buyingpower += realised_gainloss
-                            print(",,,,,,,,,,,,,,,,2222222222222    buyingpower",buyingpower,num_quantize(realised_gainloss))
+                            print(",,,,,,,,,,,,,,,,2222222222222    buyingpower", buyingpower,
+                                  num_quantize(realised_gainloss))
                             gl_obj.save()
                         except Exception as e:
-                            print("ERRORRRR  SELL STOCK  ",e)
+                            print("ERRORRRR  SELL STOCK  ", e)
                             pass
                         break
                     else:
@@ -1800,15 +1750,19 @@ class StockPageView(TemplateView):
                         pos_obj.transaction_details.size = 0
                         pos_obj.transaction_details.save()
                         try:
-                            history_obj = TransactionHistory.objects.get_or_create(position_obj=pos_obj,stock_number=stock_num,status="sell")
+                            history_obj = TransactionHistory.objects.get_or_create(position_obj=pos_obj,
+                                                                                   stock_number=stock_num,
+                                                                                   status="sell")
                         except:
                             pass
                         try:
-                            realised_gainloss = (float(current_price) - float(pos_obj.transaction_details.price)) * int(stock_num)
+                            realised_gainloss = (float(current_price) - float(pos_obj.transaction_details.price)) * int(
+                                stock_num)
                             gl_obj = GainLossHistory.objects.get(position_obj=pos_obj)
                             gl_obj.realised_gainloss = num_quantize(realised_gainloss)
                             buyingpower += realised_gainloss
-                            print(",,,,,,,,,,,,,,,,33333333333      buyingpower", buyingpower,num_quantize(realised_gainloss))
+                            print(",,,,,,,,,,,,,,,,33333333333      buyingpower", buyingpower,
+                                  num_quantize(realised_gainloss))
                             gl_obj.save()
                         except:
                             pass
@@ -1818,116 +1772,62 @@ class StockPageView(TemplateView):
                     if int(pos_obj.transaction_details.size) == 0:
                         print("###########    REMAINING SHARE    ", pos_obj.transaction_details.size)
                         pos_obj.delete()
-                    print("BUYYYING POWERRRR   ",buyingpower)
+                    print("BUYYYING POWERRRR   ", buyingpower)
                 identity_obj.buyingpower = num_quantize(buyingpower)
                 identity_obj.save()
-            elif ajxtype == "get_latest_gainloss":
-                # values = [125,136,122,128,111,145,132,130,120,125,127,138]
-                # response['gainloss_val'] = get_latest_gainloss(request)
-                # response['gainloss_val'] = random.choice(values)
-                # date = datetime.datetime.timestamp(datetime.datetime.now())
-                current_date = datetime.datetime.now()
-                current_time = current_date.time()
-                flag = 0
-                if int(current_time.hour) >= 9 and int(current_time.hour) < 15:
-                    flag = 1
-                elif int(current_time.hour) == 15:
-                    if int(current_time.minute) <= 30:
-                        flag = 1
-                if flag == 1:
-                    try:
-                        buyingpower = UserDetails.objects.get(user=request.user).identity.buyingpower
-                    except:
-                        buyingpower = 0
-
-
-                    try:
-                        gl_data = GainLossChartData.objects.get(userid=request.user).gainloss_data
-                        response['gainloss_val'] = round(float(num_quantize(float(gl_data[-1][1]) + float(buyingpower))),2)
-                        response['gl_status'] = True
-                    except:
-                        response['gainloss_val'] = 0.00
-                        response['gl_status'] = False
-                else:
-                    response['gl_status'] = False
-                # gl_data.gainloss_data.append([int(date) * 1000,get_latest_gainloss(request)])
-                # gl_data.gainloss_data.append([int(date) * 1000,random.choice(values)])
-                # gl_data.gainloss_data.append()
-                # gl_data.save()
-
-            # elif ajxtype == "chart_sort_gainloss":
-            #     sort_type = request.GET.get("sort_type")
-            #     try:
-            #         buyingpower = UserDetails.objects.get(user=request.user).identity.buyingpower
-            #     except:
-            #         buyingpower = 0
-            #     value_list = []
-            #     if sort_type == "1m":
-            #         last_month = ""
-            #         for t_gl_obj in TotalGainLoss.objects.filter(userid=request.user,created_at__lte=datetime.datetime.now(),created_at__gte=last_month):
-            #             print("::::  ", t_gl_obj.gainloss)
-            #             tgl_date = datetime.datetime.timestamp(t_gl_obj.created_at)
-            #             value_list.append([int(tgl_date) * 1000, float(t_gl_obj.gainloss) + float(buyingpower)])
-            #     elif sort_type == "3m":
-            #         pass
-            #     elif sort_type == "6m":
-            #         pass
-            #     elif sort_type == "1y":
-            #         pass
-            #     else:
-            #         pass
-
-
-            else:
-
-                from nsepy import get_history
-                nse = Nse()
-                all_stocks = StockNames.objects.all()
-                search_q = str(request.GET.get("keyword")).lower()
-                # search_q = "sbi"
-                stock_list = []
-                # print (q,"???????????????????????????????")
-                limit = 1
-                for i in all_stocks:
-                    # if limit >= 10:
-                    if search_q in i.symbol.lower() or search_q in i.name.lower():
-                        # stock,status = StockNames.objects.get_or_create(symbol=i,name=q[i])
-                        # print(i,">>>>",all_socks[i],"          ",stock,status)
-                        # print(nse.get_quote(i).get("symbol"))
-                        # print(nse.get_quote(i).get("companyName"))
-                        if i.symbol != "SYMBOL" and i.name != "NAME OF COMPANY":
-                            stock_dict = {
-                                "symbol": i.symbol,
-                                "name": i.name
-                            }
-                            stock_list.append(stock_dict)
-                            # limit += 1
-                if len(stock_list) > 10:
-                    stock_list = stock_list[:10]
-                response['stock_list'] = stock_list
-            return HttpResponse(json.dumps(response), content_type="application/json")
-        # else:
-        #     from nsetools import Nse
-        #     nse = Nse()
-        #     q = nse.get_stock_codes()
-        #     for i in q:
-        #         StockNames.objects.get_or_create(symbol=i, name=q[i])
-        import requests
-
-        # headers = {'Accept': '*/*',
-        #         'Accept-Language': 'en-US,en;q=0.5',
-        #         'Host': 'nseindia.com',
-        #         'Referer': "https://www.nseindia.com/live_market\
-        #         /dynaContent/live_watch/get_quote/GetQuote.jsp?symbol=INFY&illiquid=0&smeFlag=0&itpFlag=0",
-        #         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:28.0) Gecko/20100101 Firefox/28.0',
-        #         'X-Requested-With': 'XMLHttpRequest'
-        #         }
-        # SEARCH_URL = 'https://nseindia.com/live_market/dynaContent/live_watch/get_quote/ajaxCompanySearch.jsp?search=AXIS'
-        # r = requests.get(SEARCH_URL,headers=headers)
-        # print(r)
-        # print(r.json())
-        context['stock_symbol'] = stock_symbol
-        context['page_symbol_name'] = stock_symbol.split(":")[1]
 
         return render(request, self.template_name, context)
 
+
+class StockSearchView(View):
+
+    def get(self, request, *args, **kwargs):
+        response = {}
+        all_stocks = StockNames.objects.all()
+        search_q = str(request.GET.get("symbol")).lower()
+        stock_list = []
+        for i in all_stocks:
+            if search_q in i.symbol.lower() or search_q in i.name.lower():
+                if i.symbol != "SYMBOL" and i.name != "NAME OF COMPANY":
+                    stock_dict = {
+                        "symbol": i.symbol,
+                        "name": i.name
+                    }
+                    stock_list.append(stock_dict)
+                    # limit += 1
+            if len(stock_list) > 10:
+                stock_list = stock_list[:10]
+            response['stock_list'] = stock_list
+
+        return HttpResponse(json.dumps(response), content_type="application/json")
+
+
+class GetLatestGainLossView(View):
+
+    def get(self, request, *args, **kwargs):
+        response ={}
+        current_date = datetime.datetime.now()
+        current_time = current_date.time()
+        flag = 0
+        if int(current_time.hour) >= 9 and int(current_time.hour) < 15:
+            flag = 1
+        elif int(current_time.hour) == 15:
+            if int(current_time.minute) <= 30:
+                flag = 1
+        if flag == 1:
+            try:
+                buyingpower = UserDetails.objects.get(user=request.user).identity.buyingpower
+            except:
+                buyingpower = 0
+
+            try:
+                gl_data = GainLossChartData.objects.get(userid=request.user).gainloss_data
+                response['gainloss_val'] = round(
+                    float(num_quantize(float(gl_data[-1][1]) + float(buyingpower))), 2)
+                response['gl_status'] = True
+            except:
+                response['gainloss_val'] = 0.00
+                response['gl_status'] = False
+        else:
+            response['gl_status'] = False
+        return HttpResponse(json.dumps(response), content_type="application/json")

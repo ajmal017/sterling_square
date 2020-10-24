@@ -127,12 +127,9 @@ Highcharts.setOptions({
                         console.log("..............",$(".has_stock").val())
                         if ($(".has_stock").val() == "False") {
                             $.ajax({
-                                url: '/accounts/dashboard/',
+                                url: '/accounts/latest-gain-loss/',
                                 type: 'GET',
                                 async: true,
-                                data: {
-                                    'type': 'get_latest_gainloss'
-                                },
                                 success: function (data) {
                                     if (data.gl_status) {
                                         yVal = data.gainloss_val

@@ -45,12 +45,12 @@
 						</ul>
 						<div class="login-btn-block">
 							{% if request.user.is_authenticated %}
-							<a class="signup-btn" href="/accounts/dashboard/">Dashboard</a>
+							<a class="signup-btn" href="{% url 'accounts:dashboard' %}">Dashboard</a>
 
 							<a href="#">{{request.user.email}}</a>
 							{% else %}
-								<a class="signin-btn" href="/accounts/login/"><img src="{% static 'home/img/user-black.png' %}" alt=""> Sign In</a>
-								<a class="signup-btn" href="/accounts/signup/"><img src="{% static 'home/img/lock-white.png' %}" alt=""> Sign Up</a>
+								<a class="signin-btn" href="{% url 'accounts:login' %}"><img src="{% static 'home/img/user-black.png' %}" alt=""> Sign In</a>
+								<a class="signup-btn" href="{% url 'accounts:signup' %}"><img src="{% static 'home/img/lock-white.png' %}" alt=""> Sign Up</a>
 							{% endif %}
 						</div>
 					</div>
@@ -69,7 +69,7 @@
 								<div class="particle triangle"></div>
 								<h2>Investing for <br>Everyone</h2>
 								<p>It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout.</p>
-								<p class="mt-4"><a href="/accounts/signup/" class="link-btn">Sign Up Now <img src="{% static 'home/img/arw-right.png' %}" alt=""></a></p>
+								<p class="mt-4"><a href="{% url 'accounts:signup' %}" class="link-btn">Sign Up Now <img src="{% static 'home/img/arw-right.png' %}" alt=""></a></p>
 								<div class="btm-btn-row"><a href="#" class="btm-btn"><img src="{% static 'home/img/btn-arw.png' %}" alt=""></a></div>
 							</div>
 						</div>
@@ -319,8 +319,6 @@
 					$(this).closest("div").append($(this).html())
 				$(this).remove()
 				}
-
-
 			});
 		</script>
 	</body>
